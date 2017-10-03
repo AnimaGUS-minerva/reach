@@ -16,4 +16,12 @@ RSpec.describe PledgeKeys do
     end
   end
 
+  describe "MASA public key" do
+    it "should be a kind of public key" do
+      b = PledgeKeys.instance.masa_cert
+      expect(b).to be_kind_of(OpenSSL::X509::Certificate)
+    end
+  end
+
+
 end

@@ -20,14 +20,18 @@ class PledgeKeys
     @idevid_privkey ||= load_idevid_priv_key
   end
 
-  def masa_key
-    @masa_key ||= load_masa_pub_key
+  def masa_cert
+    @masa_cert ||= load_masa_pub_cert
   end
 
   def jrc_key
     @jrc_key  ||= load_jrc_pub_key
   end
 
+  def curve
+    # wish we could use X25519!
+    'secp384r1'
+  end
   def client_curve
     # wish we could use X25519!
     'prime256v1'
@@ -60,31 +64,8 @@ class PledgeKeys
     OpenSSL::PKey.read(privkey_file)
   end
 
-  def ca_load_pub_key
-  end
-
-  def load_jrc_priv_key
-    jrcprivkey=priv_dir.join("jrc_#{client_curve}.key")
-    File.open(jrcprivkey) do |f|
-      OpenSSL::PKey.read(f)
-    end
-  end
-
-  def load_jrc_pub_key
-    File.open(certdir.join("jrc_#{client_curve}.crt"),'r') do |f|
-      OpenSSL::X509::Certificate.new(f)
-    end
-  end
-
-  def load_priv_key
-    vendorprivkey=certdir.join("vendor_#{curve}.key")
-    File.open(vendorprivkey) do |f|
-      OpenSSL::PKey.read(f)
-    end
-  end
-
-  def load_pub_key
-    File.open(certdir.join("vendor_#{curve}.crt"),'r') do |f|
+  def load_masa_pub_cert
+    File.open(pub_dir.join("masa_#{curve}.crt"),'r') do |f|
       OpenSSL::X509::Certificate.new(f)
     end
   end
