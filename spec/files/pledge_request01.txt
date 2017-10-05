@@ -1,3 +1,4 @@
 {"ietf-voucher-request:voucher":{"assertion":"proximity",
+"created-on":"2017-09-01",
 "serial-number":"081196FFFE0181E0",
 "nonce":"Dss99sBr3pNMOACe-LYY7w"}}

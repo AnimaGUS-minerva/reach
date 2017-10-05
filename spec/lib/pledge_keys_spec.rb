@@ -33,6 +33,7 @@ RSpec.describe PledgeKeys do
       vr.assertion = :proximity
       vr.signing_cert = PledgeKeys.instance.idevid_pubkey
       vr.serialNumber = vr.eui64_from_cert
+      vr.createdOn    = '2017-09-01'.to_date
       #vr.proximityRegistrarCert = get_cert_from_tls
       smime = vr.pkcs_sign(PledgeKeys.instance.idevid_privkey)
 
