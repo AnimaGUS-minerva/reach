@@ -14,6 +14,11 @@ namespace :reach do
       exit
     end
 
+    unless jrcurl
+      puts "Must Set JRC=url"
+      exit
+    end
+
 
 
   end
