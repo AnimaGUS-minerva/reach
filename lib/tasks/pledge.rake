@@ -1,5 +1,7 @@
 # -*- ruby -*-
 
+require 'pledge'
+
 namespace :reach do
 
   # generate a voucher request with the pinned-domain-cert filled in
@@ -19,8 +21,10 @@ namespace :reach do
       exit
     end
 
+    client = Pledge.new
+    client.jrc = jrcurl
 
-
+    voucher = client.get_voucher
   end
 
 end
