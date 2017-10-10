@@ -26,6 +26,11 @@ namespace :reach do
 
     voucher = client.get_voucher(true)
 
+    unless voucher
+      puts "no voucher returned"
+      exit 10
+    end
+
     puts "Voucher connects to #{voucher.pinnedDomainCert.subject.to_s}"
     puts "vs:   #{client.http_handler.peer_cert.subject.to_s}"
     if voucher.pinnedDomainCert.to_der == client.http_handler.peer_cert.to_der
