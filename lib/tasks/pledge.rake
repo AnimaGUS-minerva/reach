@@ -21,6 +21,8 @@ namespace :reach do
       exit
     end
 
+    PledgeKeys.instance.idevid = idevid
+
     client = Pledge.new
     client.jrc = jrcurl
 
