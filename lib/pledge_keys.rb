@@ -10,7 +10,7 @@ require 'chariwt'
 class PledgeKeys
   include Singleton
 
-  attr_accessor :idevid, :dbroot
+  attr_accessor :productid, :idevid, :dbroot
 
   def idevid_pubkey
     @idevid_pubkey  ||= load_idevid_pub_key
@@ -37,12 +37,28 @@ class PledgeKeys
     'prime256v1'
   end
 
+  # when setting the productID, then set up an alternate directory for
+  # public and private key files
+  def product_id=(x)
+    @product_dir ||= dbroot.join(x)
+    @priv_file = @product_dir.join('key.pem')
+    @pub_file  = @product_dir.join('device.crt')
+  end
+
   def priv_dir
     @privkey_dir ||= dbroot.join('db').join('private')
   end
 
   def pub_dir
     @pubkey_dir ||= dbroot.join('db').join('cert')
+  end
+
+  def priv_file
+    @priv_file ||= priv_dir.join("#{idevid}_#{client_curve}.key")
+  end
+
+  def pub_file
+    @pub_file  ||= pub_dir.join("#{idevid}_#{client_curve}.crt")
   end
 
   def idevid
@@ -55,12 +71,12 @@ class PledgeKeys
 
   protected
   def load_idevid_pub_key
-    pubkey_file = File.open(pub_dir.join("#{idevid}_#{client_curve}.crt"),'r')
+    pubkey_file = File.open(pub_file,'r')
     OpenSSL::X509::Certificate.new(pubkey_file)
   end
 
   def load_idevid_priv_key
-    privkey_file=File.open(priv_dir.join("#{idevid}_#{client_curve}.key"))
+    privkey_file=File.open(priv_file)
     OpenSSL::PKey.read(privkey_file)
   end
 

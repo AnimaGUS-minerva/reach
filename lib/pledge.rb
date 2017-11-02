@@ -60,11 +60,11 @@ class Pledge
     request = Net::HTTP::Post.new(jrc_uri)
 
     vr = Chariwt::VoucherRequest.new
-    vr.nonce        = "Dss99sBr3pNMOACe-LYY7w"
+    vr.generate_nonce
     vr.assertion    = :proximity
     vr.signing_cert = PledgeKeys.instance.idevid_pubkey
     vr.serialNumber = vr.eui64_from_cert
-    vr.createdOn    = '2017-09-01'.to_date
+    vr.createdOn    = Time.now
     vr.proximityRegistrarCert = http_handler.peer_cert
     smime = vr.pkcs_sign(PledgeKeys.instance.idevid_privkey)
 
