@@ -43,6 +43,7 @@ class PledgeKeys
     @product_dir ||= dbroot.join(x)
     @priv_file = @product_dir.join('key.pem')
     @pub_file  = @product_dir.join('device.crt')
+    @masa_file = @product_dir.join("masa.crt")
   end
 
   def priv_dir
@@ -59,6 +60,9 @@ class PledgeKeys
 
   def pub_file
     @pub_file  ||= pub_dir.join("#{idevid}_#{client_curve}.crt")
+  end
+  def masa_file
+    @masa_file ||= pub_dir.join("masa_#{curve}.crt")
   end
 
   def idevid
@@ -81,7 +85,8 @@ class PledgeKeys
   end
 
   def load_masa_pub_cert
-    File.open(pub_dir.join("masa_#{curve}.crt"),'r') do |f|
+    @masa_cert ||= File.open(masa_file,'r') do |f|
+      puts "Loaded masa vendor key from #{masa_file}"
       OpenSSL::X509::Certificate.new(f)
     end
   end
