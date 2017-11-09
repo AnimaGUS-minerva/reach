@@ -24,6 +24,10 @@ class PledgeKeys
     @masa_cert ||= load_masa_pub_cert
   end
 
+  def vendor_ca
+    @vendor_ca ||= load_vendor_pub_cert
+  end
+
   def jrc_key
     @jrc_key  ||= load_jrc_pub_key
   end
@@ -43,6 +47,8 @@ class PledgeKeys
     @product_dir ||= dbroot.join(x)
     @priv_file = @product_dir.join('key.pem')
     @pub_file  = @product_dir.join('device.crt')
+    @masa_file      = @product_dir.join('masa.crt')
+    @vendorca_file  = @product_dir.join('vendor.crt')
   end
 
   def priv_dir
@@ -68,6 +74,12 @@ class PledgeKeys
   def dbroot
     @dbroot || Pathname.new("")
   end
+  def masa_pub_file
+    @masa_file ||= pub_dir.join("masa_#{curve}.crt")
+  end
+  def vendor_pub_file
+    @vendorca_file ||= pub_dir.join("vendor.crt")
+  end
 
   protected
   def load_idevid_pub_key
@@ -81,7 +93,13 @@ class PledgeKeys
   end
 
   def load_masa_pub_cert
-    File.open(pub_dir.join("masa_#{curve}.crt"),'r') do |f|
+    File.open(masa_pub_file,'r') do |f|
+      OpenSSL::X509::Certificate.new(f)
+    end
+  end
+
+  def load_vendor_pub_cert
+    File.open(vendor_pub_file,'r') do |f|
       OpenSSL::X509::Certificate.new(f)
     end
   end

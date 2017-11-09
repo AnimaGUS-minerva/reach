@@ -93,7 +93,7 @@ class Pledge
 
         der = decode_pem(response.body)
 
-        voucher = Chariwt::Voucher.from_pkcs7(der, PledgeKeys.instance.masa_cert)
+        voucher = Chariwt::Voucher.from_pkcs7(der, PledgeKeys.instance.vendor_ca)
       else
         nil
       end
