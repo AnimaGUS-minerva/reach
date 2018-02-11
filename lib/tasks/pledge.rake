@@ -56,11 +56,12 @@ namespace :reach do
   # and send it to the connected Registrar.
   desc "construct an (unsigned) CWT voucher request from PRODUCTID=xx, send to JRC=yy"
   task :send_cwt_request => :environment do
+    productid  = ENV['PRODUCTID']
     idevid  = ENV['IDEVID']
     jrcurl  = ENV['JRC']
 
-    unless idevid
-      puts "Must set IDEVID=xx"
+    if (!idevid and !productid)
+      puts "Must set IDEVID=xx or PRODUCTID=zz"
       exit
     end
 
@@ -69,12 +70,16 @@ namespace :reach do
       exit
     end
 
-    PledgeKeys.instance.idevid = idevid
+    if productid
+      PledgeKeys.instance.product_id = productid
+    else
+      PledgeKeys.instance.idevid = idevid
+    end
 
     client = Pledge.new
     client.jrc = jrcurl
 
-    voucher = client.get_voucher(true)
+    voucher = client.get_cwt_voucher(true)
 
     unless voucher
       puts "no voucher returned"

@@ -14,14 +14,16 @@ gem 'sqlite3'
 
 gem 'rspec-rails', '~> 3.6'
 
-gem 'openssl', :git => 'https://github.com/mcr/ruby-openssl.git'
+gem 'openssl', :path => '../minerva/ruby-openssl'
 gem 'chariwt', :path => '../chariwt'
 #gem 'chariwt', :git => 'https://github.com/mcr/ChariWTs.git'
 gem 'jwt'
+gem 'celluloid-io', :path => '../minerva/celluloid-io'
 
 # Use Puma as the app server
 #gem 'puma', '~> 3.0'
 
+gem 'coap', :path => '../minerva/coap'
 gem 'cbor'
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
