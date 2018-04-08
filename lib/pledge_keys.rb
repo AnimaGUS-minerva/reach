@@ -28,10 +28,6 @@ class PledgeKeys
     @vendor_ca ||= load_vendor_pub_cert
   end
 
-  def jrc_key
-    @jrc_key  ||= load_jrc_pub_key
-  end
-
   def curve
     # wish we could use X25519!
     'secp384r1'
