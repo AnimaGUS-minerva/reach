@@ -16,6 +16,7 @@ gem 'rspec-rails', '~> 3.6'
 
 gem 'openssl', :path => '../minerva/ruby-openssl'
 gem 'chariwt', :path => '../chariwt'
+gem 'ecdsa',   :git => 'https://github.com/AnimaGUS-minerva/ruby_ecdsa.git', :branch => 'ecdsa_interface_openssl'
 #gem 'chariwt', :git => 'https://github.com/mcr/ChariWTs.git'
 gem 'jwt'
 gem 'celluloid-io', :path => '../minerva/celluloid-io'
