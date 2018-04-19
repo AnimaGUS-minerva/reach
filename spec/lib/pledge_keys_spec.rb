@@ -47,6 +47,19 @@ RSpec.describe PledgeKeys do
 
       cmp_pkcs_file(smime, "pledge_request01")
     end
+
+    it "should cose sign a voucher request" do
+      vr = Chariwt::VoucherRequest.new
+      vr.nonce = "Dss99sBrab660fCe-LYY7w"
+      vr.assertion = :proximity
+      vr.signing_cert = PledgeKeys.instance.idevid_pubkey
+      vr.serialNumber = vr.eui64_from_cert
+      vr.createdOn    = '2018-02-03'.to_date
+      vr.proximityRegistrarCert = registrar_cert
+      cbor = vr.cose_sign(PledgeKeys.instance.idevid_privkey)
+
+      cmp_pkcs_file(cbor, "pledge_cbor01")
+    end
   end
 
   describe "pledge enrollment" do
