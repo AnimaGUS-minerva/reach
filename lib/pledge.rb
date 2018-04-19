@@ -55,9 +55,11 @@ class Pledge
                         :use_ssl => jrc_uri.scheme == 'https'})
   end
 
-  def get_voucher(saveto = nil)
-    self.jrc_uri = URI::join(@jrc,"/.well-known/est/requestvoucher")
+  def jrc_uri
+    @jrc_uri ||= URI::join(@jrc,"/.well-known/est/requestvoucher")
+  end
 
+  def get_voucher(saveto = nil)
     request = Net::HTTP::Post.new(jrc_uri)
 
     vr = Chariwt::VoucherRequest.new
@@ -106,16 +108,16 @@ class Pledge
   end
 
   def get_cwt_voucher(saveto = nil)
-    self.jrc_uri = URI::join(@jrc,"/.well-known/est/requestvoucher")
 
     client = CoAP::Client.new(host: jrc_uri.hostname, scheme: jrc_uri.scheme)
     client.logger.level = Logger::DEBUG
     client.logger.debug("STARTING")
     result = client.get('/.well-known/core?rt=ace.est')
 
-    return true
+    links = CoRE::Link.parse(result.payload)
 
-    request = Net::HTTP::Post.new(jrc_uri)
+    @rv_uri = jrc_uri.merge(links.uri)
+    @rv_uri.path += "/rv"
 
     vr = Chariwt::VoucherRequest.new
     vr.generate_nonce
@@ -123,18 +125,21 @@ class Pledge
     vr.signing_cert = PledgeKeys.instance.idevid_pubkey
     vr.serialNumber = vr.eui64_from_cert
     vr.createdOn    = Time.now
-    vr.proximityRegistrarCert = http_handler.peer_cert
-    smime = vr.pkcs_sign(PledgeKeys.instance.idevid_privkey)
+    vr.proximityRegistrarCert = client.peer_cert
+    cose = vr.cose_sign(PledgeKeys.instance.idevid_privkey)
 
     if saveto
-      File.open("tmp/vr_#{vr.serialNumber}.pkcs", "w") do |f|
+      File.open("tmp/vr_#{vr.serialNumber}.cwt", "w") do |f|
         f.puts smime
       end
     end
 
-    request.body = smime
-    request.content_type = 'application/pkcs7-mime; smime-type=voucher-request'
-    response = http_handler.request request # Net::HTTPResponse object
+    request.content_type = 'application/voucher-cose+cbor'
+
+    # host=nil, port=nil to get preset values above.
+    # payload = cose
+    # then options...
+    response = client.post(@rv_uri, nil, nil, cose, {:content_format => 'application/cose'})
 
     voucher = nil
     case response
