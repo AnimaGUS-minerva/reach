@@ -17,7 +17,7 @@ RSpec.describe PledgeKeys do
     ofile = File.join("tmp", base + ".pkcs")
     otfile = File.join("tmp", base+ ".txt")
 
-    File.open(ofile, "w") do |f|     f.puts smime      end
+    File.open(ofile, "wb") do |f|     f.puts smime      end
 
     system("bin/pkcs2json #{ofile} #{otfile}")
     cmd = "diff #{otfile} spec/files/#{base}.txt"
