@@ -119,7 +119,7 @@ class Pledge
     @rv_uri = jrc_uri.merge(links.uri)
     @rv_uri.path += "/rv"
 
-    vr = Chariwt::VoucherRequest.new
+    vr = Chariwt::VoucherRequest.new(:format => :cose_cbor)
     vr.generate_nonce
     vr.assertion    = :proximity
     vr.signing_cert = PledgeKeys.instance.idevid_pubkey
@@ -129,17 +129,16 @@ class Pledge
     cose = vr.cose_sign(PledgeKeys.instance.idevid_privkey)
 
     if saveto
-      File.open("tmp/vr_#{vr.serialNumber}.cwt", "w") do |f|
-        f.puts smime
+      File.open("tmp/vr_#{vr.serialNumber}.cwt", "wb") do |f|
+        f.puts cose
       end
     end
-
-    request.content_type = 'application/voucher-cose+cbor'
 
     # host=nil, port=nil to get preset values above.
     # payload = cose
     # then options...
-    response = client.post(@rv_uri, nil, nil, cose, {:content_format => 'application/cose'})
+    response = client.post(@rv_uri, nil, nil, cose,
+                           {:content_format => 'application/cose; cose-type="cose-sign"'})
 
     voucher = nil
     case response
