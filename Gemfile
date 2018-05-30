@@ -26,6 +26,7 @@ gem 'celluloid-io', :path => '../minerva/celluloid-io'
 
 gem 'coap', :path => '../minerva/coap'
 gem 'cbor'
+gem 'cbor-diag'
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.5'
