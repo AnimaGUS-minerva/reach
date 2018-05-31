@@ -6,6 +6,10 @@ require 'rails_helper'
 
 RSpec.describe PledgeKeys do
 
+  def temporary_key
+    ECDSA::Format::IntegerOctetString.decode(["20DB1328B01EBB78122CE86D5B1A3A097EC44EAC603FD5F60108EDF98EA81393"].pack("H*"))
+  end
+
   describe "IDevID certificate" do
     it "should be a public key" do
       b = PledgeKeys.instance.idevid_pubkey
@@ -20,6 +24,18 @@ RSpec.describe PledgeKeys do
     File.open(ofile, "wb") do |f|     f.puts smime      end
 
     system("bin/pkcs2json #{ofile} #{otfile}")
+    cmd = "diff #{otfile} spec/files/#{base}.txt"
+    puts cmd
+    system(cmd)
+  end
+
+  def cmp_cbor_file(cbor, base)
+    ofile = File.join("tmp", base + ".cbor")
+    otfile = File.join("tmp", base+ ".txt")
+
+    File.open(ofile, "wb") {|f| f.write cbor }
+
+    system("cbor2diag.rb #{ofile} >#{otfile}")
     cmd = "diff #{otfile} spec/files/#{base}.txt"
     puts cmd
     system(cmd)
@@ -45,7 +61,7 @@ RSpec.describe PledgeKeys do
       vr.proximityRegistrarCert = registrar_cert
       smime = vr.pkcs_sign(PledgeKeys.instance.idevid_privkey)
 
-      cmp_pkcs_file(smime, "pledge_request01")
+      expect(cmp_pkcs_file(smime, "pledge_request01")).to be true
     end
 
     it "should cose sign a voucher request" do
@@ -56,9 +72,11 @@ RSpec.describe PledgeKeys do
       vr.serialNumber = vr.eui64_from_cert
       vr.createdOn    = '2018-02-03'.to_date
       vr.proximityRegistrarCert = registrar_cert
-      cbor = vr.cose_sign(PledgeKeys.instance.idevid_privkey)
+      cbor = vr.cose_sign(PledgeKeys.instance.idevid_privkey,
+                          ECDSA::Group::Nistp256,
+                          temporary_key)
 
-      cmp_pkcs_file(cbor, "pledge_cbor01")
+      expect(cmp_cbor_file(cbor, "pledge_cbor01")).to be true
     end
   end
 
