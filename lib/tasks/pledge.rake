@@ -55,7 +55,7 @@ namespace :reach do
   # proximity-registrar-public-key filled in
   # and send it to the connected Registrar.
   desc "construct an (unsigned) CWT voucher request from PRODUCTID=xx, send to JRC=yy"
-  task :send_cwt_request => :environment do
+  task :send_constrained_request => :environment do
     productid  = ENV['PRODUCTID']
     idevid  = ENV['IDEVID']
     jrcurl  = ENV['JRC']
@@ -79,7 +79,7 @@ namespace :reach do
     client = Pledge.new
     client.jrc = jrcurl
 
-    voucher = client.get_cwt_voucher(true)
+    voucher = client.get_constrained_voucher(true)
 
     unless voucher
       puts "no voucher returned"

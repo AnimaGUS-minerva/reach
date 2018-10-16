@@ -86,8 +86,8 @@ RSpec.describe PledgeKeys do
       client = Pledge.new
       client.jrc = "https://fountain-test.sandelman.ca"
 
+      pending "requires fountain to be running"
       voucher = client.get_voucher
-      pending "Likely does not run if device is no longer valid"
       expect(voucher).to_not be_nil
     end
   end

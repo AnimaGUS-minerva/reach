@@ -2,6 +2,17 @@ require 'pledge_keys'
 require 'net/http'
 require 'openssl'
 
+URI::Generic.class_eval do
+  def request_uri
+    return nil unless @path
+    if @path.start_with?(?/.freeze)
+      @query ? "#@path?#@query" : @path.dup
+    else
+      @query ? "/#@path?#@query" : "/#@path"
+    end
+  end
+end
+
 class Pledge
   attr_accessor :jrc, :jrc_uri
 
@@ -55,12 +66,21 @@ class Pledge
                         :use_ssl => jrc_uri.scheme == 'https'})
   end
 
+  def coap_handler
+    @http_handler ||=
+      Net::HTTP.start(jrc_uri.host, jrc_uri.port,
+                      { :verify_mode => OpenSSL::SSL::VERIFY_NONE,
+                        :use_ssl => jrc_uri.scheme == 'https'})
+  end
+
   def jrc_uri
     @jrc_uri ||= URI::join(@jrc,"/.well-known/est/requestvoucher")
   end
 
   def get_voucher(saveto = nil)
     request = Net::HTTP::Post.new(jrc_uri)
+
+    # this needs to set the SSL client certificate somewhere.
 
     vr = Chariwt::VoucherRequest.new
     vr.generate_nonce
@@ -73,7 +93,7 @@ class Pledge
 
     if saveto
       File.open("tmp/vr_#{vr.serialNumber}.pkcs", "w") do |f|
-        f.puts smime
+        f.write smime
       end
     end
 
@@ -107,14 +127,24 @@ class Pledge
     voucher
   end
 
-  def get_cwt_voucher(saveto = nil)
+  def get_constrained_voucher(saveto = nil)
 
     client = CoAP::Client.new(host: jrc_uri.hostname, scheme: jrc_uri.scheme)
+    client.client_cert = PledgeKeys.instance.idevid_pubkey
+    client.client_key  = PledgeKeys.instance.idevid_privkey
     client.logger.level = Logger::DEBUG
     client.logger.debug("STARTING")
+    client.client_cert = PledgeKeys.instance.idevid_pubkey
+
+    CoRE::CoAP::Transmission.client_debug=true
+
     result = client.get('/.well-known/core?rt=ace.est')
 
     links = CoRE::Link.parse(result.payload)
+
+    print "Ready?  "
+    ans = STDIN.gets
+    puts "proceeding..."
 
     @rv_uri = jrc_uri.merge(links.uri)
     @rv_uri.path += "/rv"
@@ -130,7 +160,7 @@ class Pledge
 
     if saveto
       File.open("tmp/vr_#{vr.serialNumber}.cwt", "wb") do |f|
-        f.puts cose
+        f.write cose
       end
     end
 
