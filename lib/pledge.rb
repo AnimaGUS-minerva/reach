@@ -16,39 +16,79 @@ end
 class Pledge
   attr_accessor :jrc, :jrc_uri
 
-  def process_smime_type
-    case @smimetype.downcase
-    when 'voucher'
-      @pkcs7voucher = true
-      @voucher_response_type = :pkcs7
-    end
-  end
+  def process_content_type(type, bodystr)
+    ct = Mail::Parsers::ContentTypeParser.parse(type)
 
-  def process_content_type_arguments(args)
-    args.each { |param|
-      param.strip!
-      (thing,value) = param.split(/=/)
-      case thing.downcase
-      when 'smime-type'
-        @smimetype = value.downcase
-        process_smime_type
-        @responsetype = :pkcs7_voucher
+    return [false,nil] unless ct
+
+    # XXX this is all wrong now.
+    parameters = ct.parameters.first
+
+    begin
+      case [ct.main_type,ct.sub_type]
+      when ['application','pkcs7-mime'], ['application','cms']
+        @voucher_response_type = :pkcs7
+
+
+        @smimetype = parameters['smime-type']
+        if @smimetype == 'voucher'
+          @responsetype = :pkcs7_voucher
+          @pkcs7voucher = true
+        end
+
+        der = decode_pem(bodystr)
+        voucher = ::CmsVoucher.from_voucher(@voucher_response_type, der)
+
+      when ['application','voucher-cms+cbor']
+        @voucher_response_type = :pkcs7
+        voucher = ::CoseVoucher.from_voucher(@voucher_response_type, bodystr)
+
+      when ['application','voucher-cose+cbor']
+        @voucher_response_type = :cbor
+        @cose = true
+        voucher = ::CoseVoucher.from_voucher(@voucher_response_type, bodystr)
+
+      when ['multipart','mixed']
+        @voucher_response_type = :cbor
+        @cose = true
+        @boundary = parameters["boundary"]
+        mailbody = Mail::Body.new(bodystr)
+        mailbody.split!(@boundary)
+        voucher = Voucher.from_parts(mailbody.parts)
+      else
+        byebug
       end
-    }
+
+    rescue Chariwt::Voucher::MissingPublicKey => e
+      self.status = { :failed       => e.message,
+                      :voucher_type => ct.to_s,
+                      :parameters   => parameters,
+                      :encoded_voucher => Base64::urlsafe_encode64(bodystr),
+                      :masa_url     => masa_uri.to_s }
+      return nil
+    end
+
+    return voucher
   end
 
-  def process_content_type(value)
-    things = value.split(/;/)
-    majortype = things.shift
-    return false unless majortype
+  def process_constrained_content_type(type, bodystr)
+    begin
+      case type
+      when 65502
+        @voucher_response_type = :cbor
+        @cose = true
+        voucher = Chariwt::Voucher.from_cbor_cose(bodystr, PledgeKeys.instance.masa_cert)
+      end
 
-    @apptype = majortype.downcase
-    case @apptype
-    when 'application/pkcs7-mime'
-      @pkcs7 = true
-      process_content_type_arguments(things)
-      return true
+    rescue Chariwt::Voucher::MissingPublicKey => e
+      return { :failed       => e.message,
+               :voucher_type => type,
+               :parameters   => parameters,
+               :encoded_voucher => Base64::urlsafe_encode64(bodystr)
+      }
     end
+
+    return voucher
   end
 
   def decode_pem(base64stuff)
@@ -59,18 +99,24 @@ class Pledge
     end
   end
 
+  def security_options
+    { :verify_mode => OpenSSL::SSL::VERIFY_NONE,
+      :use_ssl => jrc_uri.scheme == 'https',
+      :cert    => PledgeKeys.instance.idevid_pubkey,
+      :key     => PledgeKeys.instance.idevid_privkey
+    }
+  end
+
   def http_handler
     @http_handler ||=
       Net::HTTP.start(jrc_uri.host, jrc_uri.port,
-                      { :verify_mode => OpenSSL::SSL::VERIFY_NONE,
-                        :use_ssl => jrc_uri.scheme == 'https'})
+                      security_options)
   end
 
   def coap_handler
     @http_handler ||=
       Net::HTTP.start(jrc_uri.host, jrc_uri.port,
-                      { :verify_mode => OpenSSL::SSL::VERIFY_NONE,
-                        :use_ssl => jrc_uri.scheme == 'https'})
+                      security_options)
   end
 
   def jrc_uri
@@ -107,16 +153,15 @@ class Pledge
       raise VoucherRequest::BadMASA
 
     when Net::HTTPSuccess
-      if process_content_type(@content_type = response['Content-Type'])
+      ct = response['Content-Type']
+      logger.info "MASA provided voucher of type #{ct}"
+      voucher = process_content_type(ct, response.body)
+      if voucher
         if saveto
           File.open("tmp/voucher_#{vr.serialNumber}.pkcs", "w") do |f|
             f.puts response.body
           end
         end
-
-        der = decode_pem(response.body)
-
-        voucher = Chariwt::Voucher.from_pkcs7(der, PledgeKeys.instance.vendor_ca)
       else
         nil
       end
@@ -159,7 +204,7 @@ class Pledge
     cose = vr.cose_sign(PledgeKeys.instance.idevid_privkey)
 
     if saveto
-      File.open("tmp/vr_#{vr.serialNumber}.cwt", "wb") do |f|
+      File.open("tmp/vr_#{vr.serialNumber}.vrq", "wb") do |f|
         f.write cose
       end
     end
@@ -171,21 +216,20 @@ class Pledge
                            {:content_format => 'application/cose; cose-type="cose-sign"'})
 
     voucher = nil
-    case response
-    when Net::HTTPBadRequest, Net::HTTPNotFound
+    case
+    when response.mcode[0] == 5
       raise VoucherRequest::BadMASA
 
-    when Net::HTTPSuccess
-      if process_content_type(@content_type = response['Content-Type'])
+    when response.mcode == [2,5]
+      ct = response.options[:content_format]
+      puts "MASA provided voucher of type #{ct}"
+      voucher = process_constrained_content_type(ct, response.payload)
+      if voucher
         if saveto
-          File.open("tmp/voucher_#{vr.serialNumber}.pkcs", "w") do |f|
-            f.puts response.body
+          File.open("tmp/voucher_#{voucher.serialNumber}.vch", "wb") do |f|
+            f.puts response.payload
           end
         end
-
-        der = decode_pem(response.body)
-
-        voucher = Chariwt::Voucher.from_pkcs7(der, PledgeKeys.instance.vendor_ca)
       else
         nil
       end
