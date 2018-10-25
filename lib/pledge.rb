@@ -37,16 +37,16 @@ class Pledge
         end
 
         der = decode_pem(bodystr)
-        voucher = ::CmsVoucher.from_voucher(@voucher_response_type, der)
+        voucher = Chariwt::Voucher.from_pkcs7(der, PledgeKeys.instance.vendor_ca)
 
       when ['application','voucher-cms+cbor']
         @voucher_response_type = :pkcs7
-        voucher = ::CoseVoucher.from_voucher(@voucher_response_type, bodystr)
+        voucher = Chariwt::Voucher.from_cms_cbor(bodystr, PledgeKeys.instance.vendor_ca)
 
       when ['application','voucher-cose+cbor']
         @voucher_response_type = :cbor
         @cose = true
-        voucher = ::CoseVoucher.from_voucher(@voucher_response_type, bodystr)
+        voucher = Chariwt::Voucher.from_cose_cbor(bodystr, PledgeKeys.instance.vendor_ca)
 
       when ['multipart','mixed']
         @voucher_response_type = :cbor
@@ -54,7 +54,8 @@ class Pledge
         @boundary = parameters["boundary"]
         mailbody = Mail::Body.new(bodystr)
         mailbody.split!(@boundary)
-        voucher = Voucher.from_parts(mailbody.parts)
+        voucher = Chariwt::Voucher.from_cose_cbor(mailbody.parts[0],
+                                                  mailbody.parts[1])
       else
         byebug
       end
@@ -154,7 +155,7 @@ class Pledge
 
     when Net::HTTPSuccess
       ct = response['Content-Type']
-      logger.info "MASA provided voucher of type #{ct}"
+      puts "MASA provided voucher of type #{ct}"
       voucher = process_content_type(ct, response.body)
       if voucher
         if saveto
