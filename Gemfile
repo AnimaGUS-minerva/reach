@@ -34,6 +34,10 @@ gem 'jbuilder', '~> 2.5'
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
+# for decoding MIME content types.
+gem 'mail'
+
+
 gem 'byebug'
 
 group :development do

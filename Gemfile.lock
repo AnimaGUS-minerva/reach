@@ -218,6 +218,7 @@ DEPENDENCIES
   ecdsa!
   jbuilder (~> 2.5)
   jwt
+  mail
   openssl!
   rails (~> 5.0.4)
   rspec-rails (~> 3.6)
@@ -227,4 +228,4 @@ DEPENDENCIES
   sqlite3
 
 BUNDLED WITH
-   1.16.0
+   1.16.6
