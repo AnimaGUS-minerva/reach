@@ -210,6 +210,9 @@ class Pledge
       end
     end
 
+    # set block size bigger.
+    client.max_payload = 1024
+
     # host=nil, port=nil to get preset values above.
     # payload = cose
     # then options...
