@@ -1,24 +1,27 @@
 GIT
+  remote: git@github.com:AnimaGUS-minerva/celluloid-io.git
+  revision: 43439625828cb1821ab01e6a1f1658e13bd5e20a
+  submodules: true
+  specs:
+    celluloid-io (0.17.3)
+      celluloid (>= 0.17.2)
+      nio4r (>= 1.1)
+      timers (>= 4.1.1)
+
+GIT
   remote: https://github.com/AnimaGUS-minerva/ruby_ecdsa.git
   revision: e3840d25a60b8cb6eff9247062663542d332130a
   branch: ecdsa_interface_openssl
   specs:
     ecdsa (1.3.0)
 
-PATH
-  remote: ../chariwt
+GIT
+  remote: https://github.com/mcr/ChariWTs.git
+  revision: 5dbb7787d2f29c5f303f1707f33c15cb66fe664d
   specs:
     chariwt (0.6.0)
       cbor (~> 0.5.0)
       ecdsa (~> 1.3.0)
-
-PATH
-  remote: ../minerva/celluloid-io
-  specs:
-    celluloid-io (0.17.3)
-      celluloid (>= 0.17.2)
-      nio4r (>= 1.1)
-      timers (>= 4.1.1)
 
 PATH
   remote: ../minerva/coap
