@@ -156,6 +156,51 @@ class Pledge
     when Net::HTTPSuccess
       ct = response['Content-Type']
       puts "MASA provided voucher of type #{ct}"
+      if saveto
+        File.open("tmp/voucher_#{vr.serialNumber}.pkcs", "w") do |f|
+          f.puts response.body
+        end
+      end
+      voucher = process_content_type(ct, response.body)
+
+    when Net::HTTPRedirection
+      byebug
+    end
+    voucher
+  end
+
+  def get_voucher_with_unsigned(saveto = nil)
+    request = Net::HTTP::Post.new(jrc_uri)
+
+    # this needs to set the SSL client certificate somewhere.
+
+    vr = Chariwt::VoucherRequest.new
+    vr.generate_nonce
+    vr.assertion    = :proximity
+    vr.signing_cert = PledgeKeys.instance.idevid_pubkey
+    vr.serialNumber = vr.eui64_from_cert
+    vr.createdOn    = Time.now
+    vr.proximityRegistrarCert = http_handler.peer_cert
+    smime = vr.unsigned
+
+    if saveto
+      File.open("tmp/vr_#{vr.serialNumber}.json", "w") do |f|
+        f.write smime
+      end
+    end
+
+    request.body = smime
+    request.content_type = 'application/json'
+    response = http_handler.request request # Net::HTTPResponse object
+
+    voucher = nil
+    case response
+    when Net::HTTPBadRequest, Net::HTTPNotFound
+      raise VoucherRequest::BadMASA
+
+    when Net::HTTPSuccess
+      ct = response['Content-Type']
+      puts "MASA provided voucher of type #{ct}"
       voucher = process_content_type(ct, response.body)
       if voucher
         if saveto
@@ -212,6 +257,70 @@ class Pledge
 
     # set block size bigger.
     client.max_payload = 1024
+
+    # host=nil, port=nil to get preset values above.
+    # payload = cose
+    # then options...
+    response = client.post(@rv_uri, nil, nil, cose,
+                           {:content_format => 'application/cose; cose-type="cose-sign"'})
+
+    voucher = nil
+    case
+    when response.mcode[0] == 5
+      raise VoucherRequest::BadMASA
+
+    when response.mcode == [2,5]
+      ct = response.options[:content_format]
+      puts "MASA provided voucher of type #{ct}"
+      voucher = process_constrained_content_type(ct, response.payload)
+      if voucher
+        if saveto
+          File.open("tmp/voucher_#{voucher.serialNumber}.vch", "wb") do |f|
+            f.puts response.payload
+          end
+        end
+      else
+        nil
+      end
+    end
+    voucher
+  end
+
+  def get_constrained_enroll(saveto = nil)
+
+    client = CoAP::Client.new(host: jrc_uri.hostname, scheme: jrc_uri.scheme)
+    client.client_cert = PledgeKeys.instance.idevid_pubkey
+    client.client_key  = PledgeKeys.instance.idevid_privkey
+    client.logger.level = Logger::DEBUG
+    client.logger.debug("STARTING")
+    client.client_cert = PledgeKeys.instance.idevid_pubkey
+
+    CoRE::CoAP::Transmission.client_debug=true
+
+    result = client.get('/.well-known/core?rt=ace.est')
+
+    links = CoRE::Link.parse(result.payload)
+
+    print "Ready?  "
+    ans = STDIN.gets
+    puts "proceeding..."
+
+    @cacerts_uri = jrc_uri.merge(links.uri)
+    @cacerts_uri.path += "/crts"
+
+    # set block size bigger.
+    #client.max_payload = 1024
+
+    result = client.get(@cacerts_uri)
+
+    byebug
+
+    @sen_uri = jrc_uri.merge(links.uri)
+    @sen_uri.path += "/sen"
+
+    # now build a CSR request.
+    csr = OpenSSL::X509::Request.new
+    #csr.
 
     # host=nil, port=nil to get preset values above.
     # payload = cose
