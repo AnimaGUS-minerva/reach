@@ -24,9 +24,8 @@ GIT
   specs:
     ecdsa (1.3.0)
 
-GIT
-  remote: https://github.com/mcr/ChariWTs.git
-  revision: 5dbb7787d2f29c5f303f1707f33c15cb66fe664d
+PATH
+  remote: ../chariwt
   specs:
     chariwt (0.6.0)
       cbor (~> 0.5.0)
@@ -36,7 +35,6 @@ PATH
   remote: ../minerva/ruby-openssl
   specs:
     openssl (2.2.0.pre.mcr1)
-      ipaddr
 
 GEM
   remote: https://rubygems.org/
@@ -113,7 +111,6 @@ GEM
     hitimes (1.3.0)
     i18n (1.1.1)
       concurrent-ruby (~> 1.0)
-    ipaddr (1.2.0)
     jbuilder (2.7.0)
       activesupport (>= 4.2.0)
       multi_json (>= 1.2)
@@ -235,4 +232,4 @@ DEPENDENCIES
   sqlite3
 
 BUNDLED WITH
-   1.16.6
+   1.17.1
