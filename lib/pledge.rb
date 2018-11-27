@@ -145,13 +145,14 @@ class Pledge
     end
 
     request.body = smime
-    request.content_type = 'application/pkcs7-mime; smime-type=voucher-request'
+    request.content_type = 'application/voucher-cms+json'
+    #request.content_type = 'application/pkcs7-mime; smime-type=voucher-request'
     response = http_handler.request request # Net::HTTPResponse object
 
     voucher = nil
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
-      raise VoucherRequest::BadMASA
+      puts "Fountain is bad: #{response.to_s}"
 
     when Net::HTTPSuccess
       ct = response['Content-Type']
