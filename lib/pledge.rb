@@ -182,7 +182,7 @@ class Pledge
     vr.serialNumber = vr.eui64_from_cert
     vr.createdOn    = Time.now
     vr.proximityRegistrarCert = http_handler.peer_cert
-    smime = vr.unsigned
+    smime = vr.unsigned!
 
     if saveto
       File.open("tmp/vr_#{vr.serialNumber}.json", "w") do |f|

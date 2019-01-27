@@ -32,9 +32,9 @@ namespace :reach do
     setup_voucher_request
 
     client = Pledge.new
-    client.jrc = jrcurl
+    client.jrc = @jrcurl
 
-    voucher = client.get_unsigned_voucher(true)
+    voucher = client.get_voucher_with_unsigned(true)
 
     unless voucher
       puts "no voucher returned"
