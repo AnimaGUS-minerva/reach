@@ -90,6 +90,23 @@ RSpec.describe PledgeKeys do
       voucher = client.get_voucher
       expect(voucher).to_not be_nil
     end
+
+    it "should process a CSR attributes, creating a CSR" do
+      csrattr_str = IO::binread("spec/files/csr_bulb1.der")
+      ca = CSRAttributes.from_der(csrattr_str)
+      san_list = ca.find_subjectAltName
+
+      # loop through each each, looking for rfc822Name
+      names = san_list.select { |san|
+        san.value.first && san.value[0].tag == CSRAttributes.rfc822NameChoice
+      }
+      expect(names.length).to eq(1)
+
+      # names contains an arrays of SubjectAltNames that are rfc822Names.
+      # As there is a SET of possible values, the second array exists.
+      # Within that group is a SEQ of GENERAL names.
+      expect(names[0].value[0].value[0].value).to include("acp.example.com")
+    end
   end
 
   describe "MASA public key" do
