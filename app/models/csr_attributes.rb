@@ -41,6 +41,24 @@ class CSRAttributes
   def find_subjectAltName
     find_attr(OpenSSL::ASN1::ObjectId.new("subjectAltName"))
   end
+  def find_rfc822Name
+    san_list = find_subjectAltName
+
+    # loop through each each, looking for rfc822Name
+    names = san_list.select { |san|
+      san.value.first && san.value[0].tag == CSRAttributes.rfc822NameChoice
+    }
+
+    return nil if(names.length < 1)
+    return nil if(names[0].value.length < 1)
+    return nil if(names[0].value[0].value.length < 1)
+
+    # names contains an arrays of SubjectAltNames that are rfc822Names.
+    # As there is a SET of possible values, the second array exists.
+    # Within that group is a SEQ of GENERAL names.
+    name = names[0].value[0].value[0].value
+    return name
+  end
 
   def add_oid(x)
     @attributes << OpenSSL::ASN1::ObjectId.new(x)
