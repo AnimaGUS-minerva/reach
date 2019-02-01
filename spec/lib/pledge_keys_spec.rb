@@ -87,8 +87,17 @@ RSpec.describe PledgeKeys do
       client.jrc = "https://fountain-test.sandelman.ca"
 
       pending "requires fountain to be running"
+      voucher = nil
       #voucher = client.get_voucher
       expect(voucher).to_not be_nil
+    end
+
+    def highwaytest_clientcert_almec_f20001
+      @highwaytest_clientcert_almec      ||= OpenSSL::X509::Certificate.new(IO::read("spec/files/product_00-D0-E5-F2-00-01/device.crt"))
+    end
+
+    def highwaytest_clientcert_almec_f20001_priv
+      @highwaytest_clientcert_almec_priv ||= OpenSSL::PKey.read(IO::read("spec/files/product_00-D0-E5-F2-00-01/key.pem"))
     end
 
     it "should process a CSR attributes, creating a CSR" do
@@ -97,6 +106,17 @@ RSpec.describe PledgeKeys do
 
       rfc822Name = ca.find_rfc822Name
       expect(rfc822Name).to include("acp.example.com")
+
+      serial_number = "00-D0-E5-F2-00-01"
+      # now create a CSR attribute with the specified name.
+      csr = OpenSSL::X509::Request.new
+      csr.version = 0
+      csr.subject = OpenSSL::X509::Name.new([["serialNumber", serial_number, 12]])
+      csr.public_key = highwaytest_clientcert_almec_f20001.public_key
+      csr.sign highwaytest_clientcert_almec_f20001_priv, OpenSSL::Digest::SHA256.new
+
+      File.open("tmp/csr_almec_bulb1.csr", "wb") do |f| f.syswrite csr.to_der end
+      expect(csr.verify(csr.public_key)).to be true
     end
   end
 

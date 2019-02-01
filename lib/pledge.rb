@@ -146,7 +146,7 @@ class Pledge
 
     request.body = smime
     request.content_type = 'application/voucher-cms+json'
-    #request.content_type = 'application/pkcs7-mime; smime-type=voucher-request'
+    byebug
     response = http_handler.request request # Net::HTTPResponse object
 
     voucher = nil
