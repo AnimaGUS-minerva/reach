@@ -100,6 +100,14 @@ RSpec.describe PledgeKeys do
       @highwaytest_clientcert_almec_priv ||= OpenSSL::PKey.read(IO::read("spec/files/product_00-D0-E5-F2-00-01/key.pem"))
     end
 
+    def highwaytest_bulb1_020020
+      @highwaytest_bulb1_020020 ||= OpenSSL::X509::Certificate.new(IO::read("spec/files/product_00-D0-E5-02-00-20/device.crt"))
+    end
+
+    def highwaytest_bulb1_020020_priv
+      @highwaytest_bulb1_020020_priv ||= OpenSSL::PKey.read(IO::read("spec/files/product_00-D0-E5-02-00-20/key.pem"))
+    end
+
     it "should process a CSR attributes, creating a CSR" do
       csrattr_str = IO::binread("spec/files/csr_bulb1.der")
       ca = CSRAttributes.from_der(csrattr_str)
@@ -112,8 +120,8 @@ RSpec.describe PledgeKeys do
       csr = OpenSSL::X509::Request.new
       csr.version = 0
       csr.subject = OpenSSL::X509::Name.new([["serialNumber", serial_number, 12]])
-      csr.public_key = highwaytest_clientcert_almec_f20001.public_key
-      csr.sign highwaytest_clientcert_almec_f20001_priv, OpenSSL::Digest::SHA256.new
+      csr.public_key = highwaytest_bulb1_020020.public_key
+      csr.sign highwaytest_bulb1_020020_priv, OpenSSL::Digest::SHA256.new
 
       File.open("tmp/csr_almec_bulb1.csr", "wb") do |f| f.syswrite csr.to_der end
       expect(csr.verify(csr.public_key)).to be true
