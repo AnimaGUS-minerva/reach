@@ -123,7 +123,7 @@ RSpec.describe PledgeKeys do
       csr.public_key = highwaytest_bulb1_020020.public_key
       csr.sign highwaytest_bulb1_020020_priv, OpenSSL::Digest::SHA256.new
 
-      File.open("tmp/csr_almec_bulb1.csr", "wb") do |f| f.syswrite csr.to_der end
+      File.open("tmp/csr_bulb1.csr", "wb") do |f| f.syswrite csr.to_der end
       expect(csr.verify(csr.public_key)).to be true
     end
   end
