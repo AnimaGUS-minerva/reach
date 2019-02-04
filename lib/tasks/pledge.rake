@@ -26,6 +26,7 @@ namespace :reach do
     end
   end
 
+
   # generate an unsigned voucher request
   desc "construct a unsigned voucher request IDEVID=xx/PRODUCTID=zz, send to JRC=yy"
   task :send_unsigned_voucher_request => :environment do
@@ -41,17 +42,27 @@ namespace :reach do
       exit 10
     end
 
-    puts "Voucher connects to #{voucher.pinnedDomainCert.subject.to_s}"
-    puts "vs:   #{client.http_handler.peer_cert.subject.to_s}"
-    if voucher.pinnedDomainCert.to_der == client.http_handler.peer_cert.to_der
-      puts "Voucher authenticates this connection!"
-    else
-      puts "Something went wrong, and voucher does not provide correct info"
-    end
+    client.voucher_validate!(voucher)
 
     # Registrar is now authenticated!
   end
 
+  # generate a voucher request with the
+  # proximity-registrar-cert filled in
+  # and send it to the appropriate Registrar.
+  desc "enroll using HTTP to with IDEVID=xx/PRODUCTID=zz, send to JRC=yy"
+  task :enroll_http_pledge => :environment do
+    setup_voucher_request
+
+    client = Pledge.new
+    client.jrc = @jrcurl
+
+    voucher = client.get_voucher(true)
+    # now enroll using /simpleenroll
+
+    client.voucher_validate!(voucher)
+    client.enroll(true)
+  end
 
   # generate a voucher request with the
   # proximity-registrar-cert filled in
@@ -70,14 +81,7 @@ namespace :reach do
       exit 10
     end
 
-    puts "Voucher connects to #{voucher.pinnedDomainCert.subject.to_s}"
-    puts "vs:   #{client.http_handler.peer_cert.subject.to_s}"
-    if voucher.pinnedDomainCert.to_der == client.http_handler.peer_cert.to_der
-      puts "Voucher authenticates this connection!"
-    else
-      puts "Something went wrong, and voucher does not provide correct info"
-    end
-
+    client.voucher_validate!(voucher)
     # Registrar is now authenticated!
   end
 
@@ -117,8 +121,7 @@ namespace :reach do
       exit 10
     end
 
-    puts "Voucher connects to #{voucher.pinnedDomainCert.subject.to_s}"
-
+    client.voucher_validate!(voucher)
   end
 
 end

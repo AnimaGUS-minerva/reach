@@ -123,6 +123,19 @@ class Pledge
   def jrc_uri
     @jrc_uri ||= URI::join(@jrc,"/.well-known/est/requestvoucher")
   end
+  def csrattr_uri
+    @csrattr_uri ||= URI::join(@jrc,"/.well-known/est/csrattributes")
+  end
+
+  def voucher_validate!(voucher)
+    puts "Voucher connects to #{voucher.pinnedDomainCert.subject.to_s}"
+    puts "vs:   #{http_handler.peer_cert.subject.to_s}"
+    if voucher.pinnedDomainCert.to_der == http_handler.peer_cert.to_der
+      puts "Voucher authenticates this connection!"
+    else
+      puts "Something went wrong, and voucher does not provide correct info"
+    end
+  end
 
   def get_voucher(saveto = nil)
     request = Net::HTTP::Post.new(jrc_uri)
@@ -146,7 +159,6 @@ class Pledge
 
     request.body = smime
     request.content_type = 'application/voucher-cms+json'
-    byebug
     response = http_handler.request request # Net::HTTPResponse object
 
     voucher = nil
