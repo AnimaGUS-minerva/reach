@@ -127,24 +127,24 @@ RSpec.describe PledgeKeys do
       expect(csr.verify(csr.public_key)).to be true
     end
 
-    def florean_bulb99
-      @florean_bulb99 ||= OpenSSL::X509::Certificate.new(IO::read("spec/files/product_00-D0-E5-03-00-03/device.crt"))
+    def florean_bulb03
+      @florean_bulb03 ||= OpenSSL::X509::Certificate.new(IO::read("spec/files/product_00-D0-E5-03-00-03/device.crt"))
     end
-    def florean_bulb99_priv
-      @florean_bulb99_priv ||= OpenSSL::PKey.read(IO::read("spec/files/product_00-D0-E5-03-00-03/key.pem"))
+    def florean_bulb03_priv
+      @florean_bulb03_priv ||= OpenSSL::PKey.read(IO::read("spec/files/product_00-D0-E5-03-00-03/key.pem"))
     end
 
-    it "should process a CSR attributes, creating a CSR for bulb99" do
+    it "should process a CSR attributes, creating a CSR for bulb03" do
       serial_number = "00-D0-E5-03-00-03"
 
       # now create a CSR attribute with the specified name.
       csr = OpenSSL::X509::Request.new
       csr.version = 0
       csr.subject = OpenSSL::X509::Name.new([["serialNumber", serial_number, 12]])
-      csr.public_key = florean_bulb99.public_key
-      csr.sign florean_bulb99_priv, OpenSSL::Digest::SHA256.new
+      csr.public_key = florean_bulb03.public_key
+      csr.sign florean_bulb03_priv, OpenSSL::Digest::SHA256.new
 
-      File.open("tmp/csr_bulb99.csr", "wb") do |f| f.syswrite csr.to_der end
+      File.open("tmp/csr_bulb03.csr", "wb") do |f| f.syswrite csr.to_der end
       expect(csr.verify(csr.public_key)).to be true
     end
   end
