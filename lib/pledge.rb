@@ -128,13 +128,52 @@ class Pledge
   end
 
   def voucher_validate!(voucher)
-    puts "Voucher connects to #{voucher.pinnedDomainCert.subject.to_s}"
+    voucherPinnedName = voucher.try(:pinnedDomainCert).try(:subject).try(:to_s)
+    voucherPinnedName ||= "unknown"
+    puts "Voucher connects to #{voucherPinnedName}"
     puts "vs:   #{http_handler.peer_cert.subject.to_s}"
-    if voucher.pinnedDomainCert.to_der == http_handler.peer_cert.to_der
+    if voucher.try(:pinnedDomainCert).try(:to_der) == http_handler.try(:peer_cert).try(:to_der)
       puts "Voucher authenticates this connection!"
     else
       puts "Something went wrong, and voucher does not provide correct info"
     end
+  end
+
+  def enroll(saveto = nil)
+    request = Net::HTTP::Get.new(csrattr_uri)
+    response = http_handler.request request # Net::HTTPResponse object
+
+    unless Net::HTTPSuccess === response
+      case response
+      when Net::HTTPBadRequest, Net::HTTPNotFound
+        puts "Fountain is bad: #{response.to_s} #{response.code}"
+
+      else
+        puts "Other: #{response}"
+      end
+      return
+    end
+
+    ct = response['Content-Type']
+    puts "MASA provided voucher of type #{ct}"
+    if saveto
+      File.open("tmp/csrattr.der", "wb") do |f|
+        f.puts response.body
+      end
+    end
+
+    ca = CSRAttributes.from_der(response.body)
+    san = ca.find_subjectAltName
+
+    # correct name is in san[0].value[0].value[0].value
+    unless san[0] and san[0].value[0] and san[0].value[0].value[0]
+      puts "Can not find subjectAltName!"
+      return
+    end
+    rfc822name = san[0].value[0].value[0].value
+
+
+
   end
 
   def get_voucher(saveto = nil)
@@ -164,7 +203,7 @@ class Pledge
     voucher = nil
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
-      puts "Fountain is bad: #{response.to_s}"
+      puts "Fountain is bad: #{response.to_s} #{response.code}"
 
     when Net::HTTPSuccess
       ct = response['Content-Type']
