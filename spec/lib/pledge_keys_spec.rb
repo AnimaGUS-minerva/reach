@@ -93,19 +93,19 @@ RSpec.describe PledgeKeys do
     end
 
     def highwaytest_clientcert_almec_f20001
-      @highwaytest_clientcert_almec      ||= OpenSSL::X509::Certificate.new(IO::read("spec/files/product_00-D0-E5-F2-00-01/device.crt"))
+      @highwaytest_clientcert_almec      ||= OpenSSL::X509::Certificate.new(IO::read("spec/files/product/00-D0-E5-F2-00-01/device.crt"))
     end
 
     def highwaytest_clientcert_almec_f20001_priv
-      @highwaytest_clientcert_almec_priv ||= OpenSSL::PKey.read(IO::read("spec/files/product_00-D0-E5-F2-00-01/key.pem"))
+      @highwaytest_clientcert_almec_priv ||= OpenSSL::PKey.read(IO::read("spec/files/product/00-D0-E5-F2-00-01/key.pem"))
     end
 
     def highwaytest_bulb1_020020
-      @highwaytest_bulb1_020020 ||= OpenSSL::X509::Certificate.new(IO::read("spec/files/product_00-D0-E5-02-00-20/device.crt"))
+      @highwaytest_bulb1_020020 ||= OpenSSL::X509::Certificate.new(IO::read("spec/files/product/00-D0-E5-02-00-20/device.crt"))
     end
 
     def highwaytest_bulb1_020020_priv
-      @highwaytest_bulb1_020020_priv ||= OpenSSL::PKey.read(IO::read("spec/files/product_00-D0-E5-02-00-20/key.pem"))
+      @highwaytest_bulb1_020020_priv ||= OpenSSL::PKey.read(IO::read("spec/files/product/00-D0-E5-02-00-20/key.pem"))
     end
 
     it "should process a CSR attributes, creating a CSR for bulb1" do
@@ -128,10 +128,10 @@ RSpec.describe PledgeKeys do
     end
 
     def florean_bulb03
-      @florean_bulb03 ||= OpenSSL::X509::Certificate.new(IO::read("spec/files/product_00-D0-E5-03-00-03/device.crt"))
+      @florean_bulb03 ||= OpenSSL::X509::Certificate.new(IO::read("spec/files/product/00-D0-E5-03-00-03/device.crt"))
     end
     def florean_bulb03_priv
-      @florean_bulb03_priv ||= OpenSSL::PKey.read(IO::read("spec/files/product_00-D0-E5-03-00-03/key.pem"))
+      @florean_bulb03_priv ||= OpenSSL::PKey.read(IO::read("spec/files/product/00-D0-E5-03-00-03/key.pem"))
     end
 
     it "should process a CSR attributes, creating a CSR for bulb03" do
