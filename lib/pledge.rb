@@ -57,7 +57,9 @@ class Pledge
         voucher = Chariwt::Voucher.from_cose_cbor(mailbody.parts[0],
                                                   mailbody.parts[1])
       else
+        puts "Not valid voucher type"
         byebug
+        puts "voucher: #{ct.main_type} / #{ct.sub_type}"
       end
 
     rescue Chariwt::Voucher::MissingPublicKey => e
