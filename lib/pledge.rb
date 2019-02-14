@@ -18,6 +18,7 @@ class Pledge
 
   def process_content_type(type, bodystr)
     ct = Mail::Parsers::ContentTypeParser.parse(type)
+    voucher = nil
 
     return [false,nil] unless ct
 
@@ -26,7 +27,7 @@ class Pledge
 
     begin
       case [ct.main_type,ct.sub_type]
-      when ['application','pkcs7-mime'], ['application','cms']
+      when ['application','pkcs7-mime'], ['application','voucher-cms+json']
         @voucher_response_type = :pkcs7
 
 
@@ -36,8 +37,7 @@ class Pledge
           @pkcs7voucher = true
         end
 
-        der = decode_pem(bodystr)
-        voucher = Chariwt::Voucher.from_pkcs7(der, PledgeKeys.instance.vendor_ca)
+        voucher = Chariwt::Voucher.from_pkcs7(bodystr, PledgeKeys.instance.vendor_ca)
 
       when ['application','voucher-cms+cbor']
         @voucher_response_type = :pkcs7
@@ -210,7 +210,7 @@ class Pledge
       puts "MASA provided voucher of type #{ct}"
       if saveto
         File.open("tmp/voucher_#{vr.serialNumber}.pkcs", "w") do |f|
-          f.puts response.body
+          f.syswrite response.body.b
         end
       end
       voucher = process_content_type(ct, response.body)
