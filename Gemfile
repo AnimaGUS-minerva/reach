@@ -9,6 +9,10 @@ end
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.0.4'
 
+# restrictions due to CVEs
+gem "rack", ">= 2.0.6"
+gem "loofah", ">= 2.2.3"
+
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3'
 
@@ -27,8 +31,8 @@ gem 'celluloid-io', :git => 'git@github.com:AnimaGUS-minerva/celluloid-io.git', 
 # Use Puma as the app server
 #gem 'puma', '~> 3.0'
 
-#gem 'coap', :path => '../minerva/coap'
-gem 'coap', :git => 'git@github.com:AnimaGUS-minerva/coap.git', :branch => 'dtls-client'
+gem 'coap', :path => '../minerva/coap'
+#gem 'coap', :git => 'git@github.com:AnimaGUS-minerva/coap.git', :branch => 'dtls-client'
 gem 'cbor'
 gem 'cbor-diag'
 
