@@ -3,24 +3,36 @@ class DPPCode
   attr_accessor :dpphash
   attr_accessor :dppcode
 
-  def initialize(str = nil)
+  class DPPKeyError < Exception; end
 
+  def initialize(str = nil)
+    if str
+      self.dppcode = str
+      parse_dpp
+    end
+  end
+
+  def dpphash
+    @dpphash ||= Hash.new
   end
 
   def parse_one_item(item)
     letter,rest = item.split(/:/, 2)
 
-    dpphash[item] = rest
-    case item
+    dpphash[letter] = rest
+    case letter
     when 'S'
       self.smartpledge = rest
     when 'M'
       self.mac = rest
     when 'K'
       begin
-        self.keybinary = Base64.decode64(rest)
+        self.keybinary = Base64.strict_decode64(rest)
         self.key = OpenSSL::PKey.read(keybinary)
-      rescue
+      rescue OpenSSL::PKey::PKeyError
+        raise DPPKeyError
+      rescue ArgumentError  # invalid base 64
+        raise DPPKeyError
       end
     when 'L'
       self.llv6= rest
@@ -33,11 +45,9 @@ class DPPCode
     return if dppcode.blank?
 
     return unless dppcode[0..3].upcase == 'DPP:'
-    dppcodes = dppcode[3..-1]
+    dppcodes = dppcode[4..-1]
 
     colons = dppcodes.split(/;/)
-    return unless colons[0].upcase == 'DPP'
-    colons.shift  # eat DPP
 
     item = colons.shift
     while item
