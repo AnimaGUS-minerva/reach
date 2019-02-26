@@ -10,7 +10,7 @@ require 'chariwt'
 class PledgeKeys
   include Singleton
 
-  attr_accessor :productid, :idevid, :dbroot
+  attr_accessor :productid, :product_dir, :idevid, :dbroot
 
   def idevid_pubkey
     @idevid_pubkey  ||= load_idevid_pub_key
@@ -41,7 +41,9 @@ class PledgeKeys
   # when setting the productID, then set up an alternate directory for
   # public and private key files
   def product_id=(x)
+    @product_id  = x
     @product_dir ||= dbroot.join(x)
+    FileUtils::mkdir_p(product_dir.to_s)
     @priv_file = @product_dir.join('key.pem')
     @pub_file  = @product_dir.join('device.crt')
     @masa_file      = @product_dir.join('masa.crt')
