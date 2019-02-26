@@ -1,2 +1,0 @@
-bundle exec rspec -I. spec/lib/pledge_keys_spec.rb
-
