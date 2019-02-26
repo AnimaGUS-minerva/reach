@@ -12,7 +12,7 @@ class SmartPledge < Pledge
     curve = pi.curve
 
     if File.exists?(pi.priv_file)
-      puts "CA using existing key at: #{pi.priv_file}"
+      puts "CA using existing key at: #{pi.priv_file}" unless Rails.env.test?
       self_key = OpenSSL::PKey.read(File.open(pi.priv_file))
     else
       # the CA's public/private key - 3*1024 + 8
@@ -43,7 +43,7 @@ class SmartPledge < Pledge
     File.open(pi.pub_file, 'w') do |f|
       f.write self_crt.to_pem
     end
-    puts "Self-Signed Certificate writtten to: #{outfile}"
+    puts "Self-Signed Certificate writtten to: #{pi.pub_file}" unless Rails.env.test?
 
   end
 
