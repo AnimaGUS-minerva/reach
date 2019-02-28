@@ -57,5 +57,22 @@ class DPPCode
 
   end
 
+  # decode the iauthority or URL found in the S field, and turn it into a full
+  # URL
+  def self.canonicalize_masa_url(url)
+    if !url.blank? and !url.include?("/")
+      url = "https://" + url + "/.well-known/est/"
+    else
+      # make sure that there is a trailing /
+      unless url[-1] == "/"
+        url ||= "/"
+      end
+    end
+    url
+  end
+
+  def smartpledge_enroll
+    URI.join(self.class.canonicalize_masa_url(smartpledge), "smartpledge")
+  end
 
 end

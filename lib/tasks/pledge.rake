@@ -136,4 +136,27 @@ namespace :reach do
     client.voucher_validate!(voucher)
   end
 
+  # parse a DPP file and enroll an IDevID with the indicated MASA
+  desc "parse DPPFILE=file and send it up (to MASAURL=url)"
+  task :dpp_idevid_enroll => :environment do
+    dppfile=ENV['DPPFILE']
+    unless ENV['MASAURL'].blank?
+      masaurl = ENV['MASAURL']
+    end
+
+    dpp = DPPCode.new(IO::read("spec/files/dpp1.txt"))
+    voucher = client.get_voucher_with_unsigned(true)
+
+    unless voucher
+      puts "no voucher returned"
+      exit 10
+    end
+
+    client.voucher_validate!(voucher)
+
+    # Registrar is now authenticated!
+  end
+
+
+
 end
