@@ -71,7 +71,7 @@ class DPPCode
     url
   end
 
-  def smartpledge_enroll
+  def smartpledge_enroll_url
     URI.join(self.class.canonicalize_masa_url(smartpledge), "smartpledge")
   end
 

@@ -32,7 +32,7 @@ RSpec.describe DPPCode do
     it "should find MASA URL from iauthority" do
       dc = DPPCode.new(IO::read("spec/files/dpp1.txt"))
 
-      expect(dc.smartpledge_enroll.to_s).to eq("https://highway-test.example.com/.well-known/est/smartpledge")
+      expect(dc.smartpledge_enroll_url.to_s).to eq("https://highway-test.example.com/.well-known/est/smartpledge")
     end
 
     it "should decode essid" do
