@@ -47,4 +47,27 @@ class SmartPledge < Pledge
 
   end
 
+  def security_options
+    { :verify_mode => OpenSSL::SSL::VERIFY_NONE,
+      :use_ssl => jrc_uri.scheme == 'https',
+      # use a dummy CA if testing, and might be connecting to testing highway.
+      :ca_file => (Rails.env.test? ? PledgeKeys.instance.testing_capath : nil),
+      :cert    => PledgeKeys.instance.idevid_pubkey,
+      :key     => PledgeKeys.instance.idevid_privkey
+    }
+  end
+
+  def idevid_enroll_json
+    { cert: Base64.urlsafe_encode64(PledgeKeys.instance.idevid_pubkey.to_der) }.to_json
+  end
+
+  def enroll_with_smartpledge_manufacturer(dpp)
+    self.jrc_uri = dpp.smartpledge_enroll_url
+
+    request = Net::HTTP::Post.new(jrc_uri)
+
+    request.body = idevid_enroll_json
+
+  end
+
 end
