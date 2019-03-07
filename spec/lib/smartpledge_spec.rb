@@ -53,6 +53,7 @@ RSpec.describe SmartPledge do
       pledge9999  # load files from this stored pledge
       sp = SmartPledge.new
       dpp = DPPCode.new(IO::read("spec/files/dpp1.txt"))
+      PledgeKeys.instance.testing_capath = "spec/files/product/SmartPledge-1502449999/vendor_secp384r1.crt"
       newcert = sp.enroll_with_smartpledge_manufacturer(dpp)
       expect(newcert).to be_a(OpenSSL::X509::Certificate)
     end
@@ -60,6 +61,9 @@ RSpec.describe SmartPledge do
     it "should calculate a hash to post to enrollment" do
       pledge9999
       sp = SmartPledge.new
+      File.open("tmp/enroll1.json", "w") { |f|
+        f.write sp.idevid_enroll_json
+      }
       expect(sp.idevid_enroll_json).to match(/{\"cert\":.*}/)
     end
   end

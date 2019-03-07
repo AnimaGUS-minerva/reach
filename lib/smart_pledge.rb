@@ -61,12 +61,41 @@ class SmartPledge < Pledge
     { cert: Base64.urlsafe_encode64(PledgeKeys.instance.idevid_pubkey.to_der) }.to_json
   end
 
+  def process_enroll_content_type(type, body)
+    ct = Mail::Parsers::ContentTypeParser.parse(type)
+
+    begin
+      case [ct.main_type, ct.sub_type]
+      when ['application', 'pkcs7']
+        File.open(PledgeKeys.instance.lpub_file, "wb") do |f|
+          f.syswrite body.b
+        end
+      else
+        raise ArgumentError
+      end
+    end
+  end
+
   def enroll_with_smartpledge_manufacturer(dpp)
     self.jrc_uri = dpp.smartpledge_enroll_url
 
     request = Net::HTTP::Post.new(jrc_uri)
-
     request.body = idevid_enroll_json
+    request.content_type = 'application/json'
+    response = http_handler.request request
+
+    case response
+    when Net::HTTPBadRequest, Net::HTTPNotFound
+      puts "MASA #{jrc_uri} refuses smartpledge enroll: #{response.to_s} #{response.code}"
+
+    when Net::HTTPSuccess
+      ct = response['Content-Type']
+      process_enroll_content_type(ct, response.body)
+    else
+      raise ArgumentError
+    end
+
+
 
   end
 
