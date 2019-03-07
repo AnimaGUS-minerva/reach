@@ -97,6 +97,7 @@ class SmartPledge < Pledge
 
 
 
+
   end
 
 end
