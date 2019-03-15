@@ -67,19 +67,19 @@ class PledgeKeys
     @ldevid = nil
     @dbroot = nil
     @vendorca_file = nil
-    product_id   = x
+    self.product_id=x
   end
 
   def product_id=(x)
-    @product_id  = x
     @product_dir ||= dbroot.join(x)
     FileUtils::mkdir_p(product_dir.to_s)
-    @priv_file = @product_dir.join('key.pem')
-    @pub_file  = @product_dir.join('device.crt')
+    @priv_file      = @product_dir.join('key.pem')
+    @pub_file       = @product_dir.join('device.crt')
     @lpriv_file     = @product_dir.join('key.pem')  # same private key
     @lpub_file      = @product_dir.join('ldevice.crt')
     @masa_file      = @product_dir.join('masa.crt')
     @vendorca_file  = @product_dir.join('vendor.crt')
+    @privkey_dir = @pubkey_dir = @product_dir
   end
 
   def priv_dir

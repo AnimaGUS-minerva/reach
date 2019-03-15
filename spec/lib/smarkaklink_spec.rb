@@ -44,10 +44,10 @@ RSpec.describe Smarkaklink do
       pdir=tmp_pledge_dir("spec/files/product/Smarkaklink-1502449999")
       PledgeKeys.instance.force_product_id=pdir
 
-      expect(File.exists?(PledgeKeys.instance.priv_file))
+      expect(File.exists?(PledgeKeys.instance.priv_file)).to be true
       orig = OpenSSL::Digest.digest("SHA256", IO::read(PledgeKeys.instance.priv_file))
       sp.generate_selfidevid(pdir)
-      expect(File.exists?(PledgeKeys.instance.pub_file))
+      expect(File.exists?(PledgeKeys.instance.pub_file)).to be true
 
       newd = OpenSSL::Digest.digest("SHA256", IO::read(PledgeKeys.instance.priv_file))
       expect(newd).to eq(orig)

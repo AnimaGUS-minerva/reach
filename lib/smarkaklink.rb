@@ -12,13 +12,14 @@ class Smarkaklink < Pledge
     curve = pi.curve
 
     if File.exists?(pi.priv_file)
-      puts "CA using existing key at: #{pi.priv_file}" unless Rails.env.test?
+      puts "SelfID using existing key at: #{pi.priv_file}" unless Rails.env.test?
       self_key = OpenSSL::PKey.read(File.open(pi.priv_file))
     else
       # the CA's public/private key - 3*1024 + 8
       self_key = OpenSSL::PKey::EC.new(curve)
       self_key.generate_key
       File.open(pi.priv_file, "w", 0600) do |f| f.write self_key.to_pem end
+      puts "SelfID wrote private key to #{pi.priv_file}" unless Rails.env.test?
     end
 
     self_crt  = OpenSSL::X509::Certificate.new
@@ -43,7 +44,7 @@ class Smarkaklink < Pledge
     File.open(pi.pub_file, 'w') do |f|
       f.write self_crt.to_pem
     end
-    puts "Self-Signed Certificate writtten to: #{pi.pub_file}" unless Rails.env.test?
+    puts "SelfId certificate written to: #{pi.pub_file}" unless Rails.env.test?
 
   end
 
