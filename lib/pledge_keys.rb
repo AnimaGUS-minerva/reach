@@ -48,6 +48,11 @@ class PledgeKeys
 
   # when setting the productID, then set up an alternate directory for
   # public and private key files
+  def force_product_id=(x)
+    @product_dir = nil
+    product_id=x
+  end
+
   def product_id=(x)
     @product_id  = x
     @product_dir ||= dbroot.join(x)

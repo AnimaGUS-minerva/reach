@@ -11,6 +11,11 @@ RSpec.describe Smarkaklink do
     FileUtils.remove_entry_secure(newdir, true) if Dir.exists?(newdir)
   end
 
+  #before(:each) do |x|
+  #  puts "TEST: #{x.description}"
+  #  system("sha256sum spec/files/product/00-D0-E5-F2-00-01/device.crt")
+  #end
+
   def mk_pledge_dir
     newdir = Rails.root.join("tmp").join("pledge1")
     FileUtils.remove_entry_secure(newdir, true) if Dir.exists?(newdir)
@@ -28,6 +33,7 @@ RSpec.describe Smarkaklink do
     it "should create a new cert if needed" do
       sp = Smarkaklink.new
       pdir = mk_pledge_dir
+      PledgeKeys.instance.force_product_id = pdir
 
       sp.generate_selfidevid(pdir)
       expect(File.exists?(PledgeKeys.instance.pub_file))
@@ -36,7 +42,7 @@ RSpec.describe Smarkaklink do
     it "should reuse the private key if already created" do
       sp = Smarkaklink.new
       pdir=tmp_pledge_dir("spec/files/product/Smarkaklink-1502449999")
-      PledgeKeys.instance.product_id=pdir
+      PledgeKeys.instance.force_product_id=pdir
 
       expect(File.exists?(PledgeKeys.instance.priv_file))
       orig = OpenSSL::Digest.digest("SHA256", IO::read(PledgeKeys.instance.priv_file))
@@ -50,7 +56,7 @@ RSpec.describe Smarkaklink do
 
   def pledge9999
     pdir = tmp_pledge_dir("spec/files/product/Smarkaklink-1502449999")
-    PledgeKeys.instance.product_id = pdir
+    PledgeKeys.instance.force_product_id = pdir
     yield PledgeKeys.instance
     FileUtils.remove_entry_secure(pdir, true)
   end
