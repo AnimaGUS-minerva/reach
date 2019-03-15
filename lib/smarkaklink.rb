@@ -2,10 +2,10 @@ require 'singleton'
 require 'byebug'
 require 'chariwt'
 
-class SmartPledge < Pledge
+class Smarkaklink < Pledge
 
   # this initializes the system with a self-signed IDevID.
-  def generate_selfidevid(dir = "db/smartpledge")
+  def generate_selfidevid(dir = "db/smarkaklink")
     pi = PledgeKeys.instance
     pi.product_id = dir if dir
 
@@ -26,7 +26,7 @@ class SmartPledge < Pledge
     self_crt.version = 2
     serialno=SystemVariable.randomseq(:serialnumber)
     self_crt.serial  = serialno
-    dn = sprintf("/C=Canada/OU=SmartPledge-%d", serialno)
+    dn = sprintf("/C=Canada/OU=Smarkaklink-%d", serialno)
     self_crt.subject = OpenSSL::X509::Name.parse dn
 
     # this is self-signed certificate
@@ -76,8 +76,8 @@ class SmartPledge < Pledge
     end
   end
 
-  def enroll_with_smartpledge_manufacturer(dpp)
-    self.jrc_uri = dpp.smartpledge_enroll_url
+  def enroll_with_smarkaklink_manufacturer(dpp)
+    self.jrc_uri = dpp.smarkaklink_enroll_url
 
     request = Net::HTTP::Post.new(jrc_uri)
     request.body = idevid_enroll_json
@@ -86,7 +86,7 @@ class SmartPledge < Pledge
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
-      puts "MASA #{jrc_uri} refuses smartpledge enroll: #{response.to_s} #{response.code}"
+      puts "MASA #{jrc_uri} refuses smarkaklink enroll: #{response.to_s} #{response.code}"
 
     when Net::HTTPSuccess
       ct = response['Content-Type']

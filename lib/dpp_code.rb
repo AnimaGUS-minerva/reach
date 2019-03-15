@@ -1,5 +1,5 @@
 class DPPCode
-  attr_accessor :key, :keybinary, :mac, :smartpledge, :llv6, :essid
+  attr_accessor :key, :keybinary, :mac, :smarkaklink, :llv6, :essid
   attr_accessor :dpphash
   attr_accessor :dppcode
 
@@ -22,7 +22,7 @@ class DPPCode
     dpphash[letter] = rest
     case letter
     when 'S'
-      self.smartpledge = rest
+      self.smarkaklink = rest
     when 'M'
       self.mac = rest
     when 'K'
@@ -71,8 +71,8 @@ class DPPCode
     url
   end
 
-  def smartpledge_enroll_url
-    URI.join(self.class.canonicalize_masa_url(smartpledge), "smartpledge")
+  def smarkaklink_enroll_url
+    URI.join(self.class.canonicalize_masa_url(smarkaklink), "smarkaklink")
   end
 
 end

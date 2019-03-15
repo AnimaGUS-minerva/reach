@@ -145,14 +145,9 @@ namespace :reach do
     end
 
     dpp = DPPCode.new(IO::read("spec/files/dpp1.txt"))
-    voucher = client.get_voucher_with_unsigned(true)
 
-    unless voucher
-      puts "no voucher returned"
-      exit 10
-    end
-
-    client.voucher_validate!(voucher)
+    sk = SmartPledge.new
+    sk.enroll_with_smartpledge_manufacturer(dpp)
 
     # Registrar is now authenticated!
   end
