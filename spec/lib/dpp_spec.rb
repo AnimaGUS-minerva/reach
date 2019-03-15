@@ -10,29 +10,29 @@ RSpec.describe DPPCode do
     it "should process a string from highway" do
       string = IO::read("spec/files/dpp1.txt")
       dc = DPPCode.new(string)
-      expect(dc.smartpledge).to eq("highway-test.example.com")
+      expect(dc.smarkaklink).to eq("highway-test.example.com:9443")
       expect(dc.llv6).to eq("02163EFEFF8D519B")
       expect(dc.mac).to eq("00163E8D519B")
       expect(dc.key).to be_a(OpenSSL::PKey::EC)
       expect(dc.essid).to eq("SHG3CE618")
     end
 
-    it "should decode smartpledge" do
+    it "should decode smarkaklink" do
       dc = DPPCode.new
       dc.parse_one_item("S:highway-test.example.com")
-      expect(dc.smartpledge).to eq("highway-test.example.com")
+      expect(dc.smarkaklink).to eq("highway-test.example.com")
     end
 
-    it "should decode with colon in smartpledge" do
+    it "should decode with colon in smarkaklink" do
       dc = DPPCode.new
       dc.parse_one_item("S:highway-test.example.com:9884")
-      expect(dc.smartpledge).to eq("highway-test.example.com:9884")
+      expect(dc.smarkaklink).to eq("highway-test.example.com:9884")
     end
 
     it "should find MASA URL from iauthority" do
       dc = DPPCode.new(IO::read("spec/files/dpp1.txt"))
 
-      expect(dc.smartpledge_enroll_url.to_s).to eq("https://highway-test.example.com/.well-known/est/smartpledge")
+      expect(dc.smarkaklink_enroll_url.to_s).to eq("https://highway-test.example.com:9443/.well-known/est/smarkaklink")
     end
 
     it "should decode essid" do
