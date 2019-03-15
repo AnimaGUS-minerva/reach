@@ -97,8 +97,7 @@ class Smarkaklink < Pledge
     end
 
 
-
-
+    return PledgeKeys.instance.ldevid_pubkey
   end
 
 end
