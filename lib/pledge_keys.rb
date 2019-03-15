@@ -3,14 +3,18 @@ require 'byebug'
 require 'chariwt'
 
 #
-# this class is a singleton class that provides access to the
-# public and private keys of a pledge, along with the anchor
-# to the MASA
+# this class is really a singleton class, but it's hard to
+# do testing, so we fake it with class.instance
 #
 class PledgeKeys
-  include Singleton
+  attr_accessor :product_dir, :idevid, :dbroot, :testing_capath
 
-  attr_accessor :productid, :product_dir, :idevid, :dbroot, :testing_capath
+  def self.instance
+    @instance ||= new
+  end
+  def self.instance=(x)
+    @instance = x
+  end
 
   def idevid_pubkey
     @idevid_pubkey  ||= load_idevid_pub_key
@@ -44,30 +48,6 @@ class PledgeKeys
   def client_curve
     # wish we could use X25519!
     'prime256v1'
-  end
-
-  # when setting the productID, then set up an alternate directory for
-  # public and private key files
-  def force_product_id=(x)
-    @idevid_pubkey=nil
-    @idevid_privkey=nil
-    @ldevid_pubkey=nil
-    @ldevid_privkey=nil
-    @masa_cert=nil
-    @vendor_ca=nil
-    @privkey_dir=nil
-    @pubkey_dir=nil
-    @priv_file=nil
-    @pub_file=nil
-    @lpriv_file=nil
-    @lpub_file=nil
-    @masa_file=nil
-    @masa_file ||= pub_dir.join("masa_#{curve}.crt")
-    @idevid = nil
-    @ldevid = nil
-    @dbroot = nil
-    @vendorca_file = nil
-    self.product_id=x
   end
 
   def product_id=(x)

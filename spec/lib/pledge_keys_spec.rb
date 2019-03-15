@@ -7,17 +7,15 @@ require 'rails_helper'
 RSpec.describe PledgeKeys do
 
   before(:each) do
-    PledgeKeys.instance.force_product_id = "spec/files/product/00-D0-E5-F2-00-01"
+    #puts "TEST: #{x.description}"
+    #system("sha256sum spec/files/product/00-D0-E5-F2-00-01/device.crt")
+    PledgeKeys.instance = nil
+    PledgeKeys.instance.product_id = "spec/files/product/00-D0-E5-F2-00-01"
   end
 
   def temporary_key
     ECDSA::Format::IntegerOctetString.decode(["20DB1328B01EBB78122CE86D5B1A3A097EC44EAC603FD5F60108EDF98EA81393"].pack("H*"))
   end
-
-  #before(:each) do |x|
-  #  puts "TEST: #{x.description}"
-  #  system("sha256sum spec/files/product/00-D0-E5-F2-00-01/device.crt")
-  #end
 
   describe "IDevID certificate" do
     it "should be a public key" do
