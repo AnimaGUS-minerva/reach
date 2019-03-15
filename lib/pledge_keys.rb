@@ -49,8 +49,25 @@ class PledgeKeys
   # when setting the productID, then set up an alternate directory for
   # public and private key files
   def force_product_id=(x)
-    @product_dir = nil
-    product_id=x
+    @idevid_pubkey=nil
+    @idevid_privkey=nil
+    @ldevid_pubkey=nil
+    @ldevid_privkey=nil
+    @masa_cert=nil
+    @vendor_ca=nil
+    @privkey_dir=nil
+    @pubkey_dir=nil
+    @priv_file=nil
+    @pub_file=nil
+    @lpriv_file=nil
+    @lpub_file=nil
+    @masa_file=nil
+    @masa_file ||= pub_dir.join("masa_#{curve}.crt")
+    @idevid = nil
+    @ldevid = nil
+    @dbroot = nil
+    @vendorca_file = nil
+    product_id   = x
   end
 
   def product_id=(x)
@@ -87,7 +104,7 @@ class PledgeKeys
     @lpub_file  ||= pub_dir.join("#{ldevid}_#{client_curve}.crt")
   end
 
-  def masa_file
+  def masa_pub_file
     @masa_file ||= pub_dir.join("masa_#{curve}.crt")
   end
 
@@ -117,9 +134,6 @@ class PledgeKeys
 
   def dbroot
     @dbroot || Pathname.new("")
-  end
-  def masa_pub_file
-    @masa_file ||= pub_dir.join("masa_#{curve}.crt")
   end
   def vendor_pub_file
     @vendorca_file ||= pub_dir.join("vendor.crt")
