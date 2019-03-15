@@ -65,7 +65,7 @@ RSpec.describe Smarkaklink do
 
         pk.testing_capath = "spec/files/product/Smarkaklink-1502449999/vendor_secp384r1.crt"
 
-        result = IO.read("spec/files/dpp1_certificate.der")
+        result = IO.binread("spec/files/dpp1_certificate.der")
         enroll_request = nil
         @time_now = Time.at(1507671037)  # Oct 10 17:30:44 EDT 2017
 
