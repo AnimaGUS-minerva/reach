@@ -66,20 +66,20 @@ RSpec.describe Smarkaklink do
         pk.testing_capath = "spec/files/product/Smarkaklink-1502449999/vendor_secp384r1.crt"
 
         result = IO.read("spec/files/dpp1_certificate.der")
-        voucher_request = nil
+        enroll_request = nil
         @time_now = Time.at(1507671037)  # Oct 10 17:30:44 EDT 2017
 
         allow(Time).to receive(:now).and_return(@time_now)
         stub_request(:post, "https://highway-test.example.com:9443/.well-known/est/smarkaklink").
           with(headers:
-                 {'Accept'=>['*/*', 'application/json'],
+                 {'Accept'=>'application/pkcs7',
                   'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
                   'Content-Type'=>'application/json',
                   'Host'=>'highway-test.example.com:9443',
                   'User-Agent'=>'Ruby'
                  }).
           to_return(status: 200, body: lambda { |request|
-                      voucher_request = request.body
+                      enroll_request = request
                       result},
                     headers: {
                       'Content-Type'=>'application/pkcs7'

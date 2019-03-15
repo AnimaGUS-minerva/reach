@@ -82,6 +82,7 @@ class Smarkaklink < Pledge
     request = Net::HTTP::Post.new(jrc_uri)
     request.body = idevid_enroll_json
     request.content_type = 'application/json'
+    request['Accept'] = 'application/pkcs7'
     response = http_handler.request request
 
     case response
