@@ -7,7 +7,7 @@ require 'rails_helper'
 RSpec.describe PledgeKeys do
 
   before(:each) do
-    PledgeKeys.instance.product_id = Rails.root.join("spec","files","product", "00-D0-E5-F2-00-01")
+    PledgeKeys.instance.product_id = "spec/files/product/00-D0-E5-F2-00-01"
   end
 
   def temporary_key

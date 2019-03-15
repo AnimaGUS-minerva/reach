@@ -35,7 +35,8 @@ RSpec.describe Smarkaklink do
 
     it "should reuse the private key if already created" do
       sp = Smarkaklink.new
-      pdir = tmp_pledge_dir("spec/files/product/Smarkaklink-1502449999")
+      pdir=tmp_pledge_dir("spec/files/product/Smarkaklink-1502449999")
+      PledgeKeys.instance.product_id=pdir
 
       expect(File.exists?(PledgeKeys.instance.priv_file))
       orig = OpenSSL::Digest.digest("SHA256", IO::read(PledgeKeys.instance.priv_file))
