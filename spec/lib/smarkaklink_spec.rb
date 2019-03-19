@@ -109,4 +109,16 @@ RSpec.describe Smarkaklink do
     end
   end
 
+  describe "request voucher-request" do
+    it "should generate a nonce, and encrypt it to AR DPP key" do
+      nonce = SecureRandom.base64(16)
+      dc = DPPCode.new(IO::read("spec/files/dpp1.txt"))
+      dc.rcdsakey
+
+      ECDSA::.new(r, s)
+
+
+    end
+  end
+
 end

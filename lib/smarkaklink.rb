@@ -101,4 +101,26 @@ class Smarkaklink < Pledge
     return PledgeKeys.instance.ldevid_pubkey
   end
 
+  def fetch_voucher_requrest_from_shg(shgurl)
+    request = Net::HTTP::Post.new(shgurl)
+    request.body = idevid_enroll_json
+    request.content_type = 'application/json'
+    request['Accept'] = 'application/pkcs7'
+    response = http_handler.request request
+
+    case response
+    when Net::HTTPBadRequest, Net::HTTPNotFound
+      puts "MASA #{jrc_uri} refuses smarkaklink enroll: #{response.to_s} #{response.code}"
+
+    when Net::HTTPSuccess
+      ct = response['Content-Type']
+      process_enroll_content_type(ct, response.body)
+    else
+      raise ArgumentError
+    end
+
+
+    return PledgeKeys.instance.ldevid_pubkey
+  end
+
 end
