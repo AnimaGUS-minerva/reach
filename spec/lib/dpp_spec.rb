@@ -15,6 +15,8 @@ RSpec.describe DPPCode do
       expect(dc.mac).to eq("00163E8D519B")
       expect(dc.key).to be_a(OpenSSL::PKey::EC)
       expect(dc.essid).to eq("SHG3CE618")
+
+      expect(dc.ecdsa_key).to be_a(ECDSA::Point)
     end
 
     it "should decode smarkaklink" do

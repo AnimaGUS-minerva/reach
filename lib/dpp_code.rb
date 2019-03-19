@@ -41,6 +41,10 @@ class DPPCode
     end
   end
 
+  def ecdsa_key
+    @ecdsa ||= ECDSA::Format::PubKey.decode(key)
+  end
+
   def parse_dpp
     return if dppcode.blank?
 
