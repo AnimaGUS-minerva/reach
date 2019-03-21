@@ -113,11 +113,17 @@ RSpec.describe Smarkaklink do
     it "should generate a nonce, and encrypt it to AR DPP key" do
       nonce = SecureRandom.base64(16)
       dc = DPPCode.new(IO::read("spec/files/dpp1.txt"))
-      dc.rcdsakey
+      ek = dc.ecdsa_key
 
-      ECDSA::.new(r, s)
+      byebug
+      ec = OpenSSL::PKey::EC::IES.new(ek, "algorithm")
+      encrypted = ec.public_encrypt(nonce)
+
+      blog = { "voucher-request-challenge" => Base64::urlsafe_encode64(encrypted) }
 
 
+      sp = Smarkaklink.new
+      pk.testing_capath = "spec/files/product/Smarkaklink-1502449999/vendor_secp384r1.crt"
     end
   end
 

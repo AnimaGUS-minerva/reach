@@ -47,7 +47,6 @@ gem 'jbuilder', '~> 2.5'
 # for decoding MIME content types.
 gem 'mail'
 
-
 gem 'byebug'
 
 group :development do
