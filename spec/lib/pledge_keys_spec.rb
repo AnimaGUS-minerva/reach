@@ -134,6 +134,11 @@ RSpec.describe PledgeKeys do
       @florean_bulb03_priv ||= OpenSSL::PKey.read(IO::read("spec/files/product/00-D0-E5-03-00-03/key.pem"))
     end
 
+    it "should find a serial number from the IDevID certificate" do
+      PledgeKeys.instance.product_id = "spec/files/product/00-D0-E5-03-00-03"
+      expect(PledgeKeys.instance.hunt_for_serial_number).to eq("00-D0-E5-03-00-03")
+    end
+
     it "should process a CSR attributes, creating a CSR for bulb03" do
       serial_number = "00-D0-E5-03-00-03"
 

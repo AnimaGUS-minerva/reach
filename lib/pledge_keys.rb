@@ -15,6 +15,7 @@ class PledgeKeys
   def idevid_pubkey
     @idevid_pubkey  ||= load_idevid_pub_key
   end
+  alias :idevid_cert :idevid_pubkey
 
   def idevid_privkey
     @idevid_privkey ||= load_idevid_priv_key
@@ -68,6 +69,21 @@ class PledgeKeys
 
   def idevid
     @idevid ||= "pledge"
+  end
+
+  # copied from fountain/app/models/voucher_request.rb
+  def hunt_for_serial_number
+    attrs = Hash.new
+    serial_number = nil
+    idevid_cert.subject.to_a.each {|attr|
+      # might want to look at attr[2] for type info.
+      attrs[attr[0]] = attr[1]
+    }
+
+    # look through in priority order
+    return serial_number if serial_number=attrs['serialNumber']
+    return serial_number if serial_number=attrs['CN']
+    return nil
   end
 
   def dbroot
