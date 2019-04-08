@@ -174,8 +174,28 @@ class Pledge
     end
     rfc822name = san[0].value[0].value[0].value
 
+    csr = build_csr(rfc822name)
 
+  end
 
+  def rfc822NameChoice
+    1
+  end
+  def rfc822NameAttr(rfc822name)
+    v = OpenSSL::ASN1::UTF8String.new(rfc822name, rfc822NameChoice, :EXPLICIT, :CONTEXT_SPECIFIC)
+    OpenSSL::X509::Attribute.new("subjectAltName", #OpenSSL::ASN1::ObjectId.new("subjectAltName"),
+                                 OpenSSL::ASN1::Set.new([OpenSSL::ASN1::Sequence.new([v])]))
+  end
+
+  def build_csr(rfc822name)
+    # form a Certificate Signing Request with the required rfc822name.
+    csr = OpenSSL::X509::Request.new
+    csr.version = 0
+    csr.subject = OpenSSL::X509::Name.new([["serialNumber", PledgeKeys.instance.hunt_for_serial_number, 12]])
+    csr.public_key = PledgeKeys.instance.idevid_cert.public_key
+    csr.add_attribute rfc822NameAttr(rfc822name)
+    csr.sign PledgeKeys.instance.idevid_privkey, OpenSSL::Digest::SHA256.new
+    csr
   end
 
   def get_voucher(saveto = nil)

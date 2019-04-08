@@ -109,19 +109,21 @@ RSpec.describe PledgeKeys do
     end
 
     it "should process a CSR attributes, creating a CSR for bulb1" do
+      serial_number = "00-D0-E5-F2-00-01"
+      PledgeKeys.instance.product_id = "spec/files/product/#{serial_number}"
+
+      client = Pledge.new
+
       csrattr_str = IO::binread("spec/files/csr_bulb1.der")
       ca = CSRAttributes.from_der(csrattr_str)
 
       rfc822Name = ca.find_rfc822Name
       expect(rfc822Name).to include("acp.example.com")
 
-      serial_number = "00-D0-E5-F2-00-01"
       # now create a CSR attribute with the specified name.
-      csr = OpenSSL::X509::Request.new
-      csr.version = 0
-      csr.subject = OpenSSL::X509::Name.new([["serialNumber", serial_number, 12]])
-      csr.public_key = highwaytest_bulb1_020020.public_key
-      csr.sign highwaytest_bulb1_020020_priv, OpenSSL::Digest::SHA256.new
+      csr = client.build_csr(rfc822Name)
+      expect(csr.subject.to_s).to include(serial_number)
+      #expect(csr.subject.to_s).to include("00-D0-E5-03-00-03")
 
       File.open("tmp/csr_bulb1.csr", "wb") do |f| f.syswrite csr.to_der end
       expect(csr.verify(csr.public_key)).to be true
@@ -140,14 +142,12 @@ RSpec.describe PledgeKeys do
     end
 
     it "should process a CSR attributes, creating a CSR for bulb03" do
-      serial_number = "00-D0-E5-03-00-03"
+      PledgeKeys.instance.product_id = "spec/files/product/00-D0-E5-03-00-03"
 
       # now create a CSR attribute with the specified name.
-      csr = OpenSSL::X509::Request.new
-      csr.version = 0
-      csr.subject = OpenSSL::X509::Name.new([["serialNumber", serial_number, 12]])
-      csr.public_key = florean_bulb03.public_key
-      csr.sign florean_bulb03_priv, OpenSSL::Digest::SHA256.new
+      client = Pledge.new
+      csr = client.build_csr("rfc822name@example.com")
+      expect(csr.subject.to_s).to include("00-D0-E5-03-00-03")
 
       File.open("tmp/csr_bulb03.csr", "wb") do |f| f.syswrite csr.to_der end
       expect(csr.verify(csr.public_key)).to be true
