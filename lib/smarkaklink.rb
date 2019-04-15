@@ -1,6 +1,7 @@
 require 'singleton'
 require 'byebug'
 require 'chariwt'
+require 'json'
 
 class Smarkaklink < Pledge
 
@@ -101,20 +102,51 @@ class Smarkaklink < Pledge
     return PledgeKeys.instance.ldevid_pubkey
   end
 
-  def fetch_voucher_requrest_from_shg(shgurl)
-    request = Net::HTTP::Post.new(shgurl)
-    request.body = idevid_enroll_json
+  def voucher_request_json(dpp)
+    # TODO: Add padding
+    ec = OpenSSL::PKey::EC::IES.new(dpp.ecdsa_key, "algorithm")
+    encrypted_nonce = ec.public_encrypt(self.sp_nonce)
+    { "voucher-request challenge": { "voucher-challenge-nonce": Base64.urlsafe_encode64(encrypted_nonce) } }.to_json
+  end
+
+  def process_voucher_request_content_type(type, body)
+    ct = Mail::Parsers::ContentTypeParser.parse(type)
+
+    begin
+      case [ct.main_type, ct.sub_type]
+      when ['application', 'json']
+        voucher_request = Chariwt::Voucher.from_pkcs7(body.b, http_handler.peer_cert)
+        if voucher_request.nonce != self.sp_nonce
+          puts "Invalid voucher-challenge-nonce from AR #{http_handler.address}"
+        else
+          puts "Connection with AR validated"
+        end
+      else
+        raise ArgumentError
+      end
+    end
+  end
+
+  def fetch_voucher_request_url(dpp)
+    URI.join("https://" + dpp.llv6, "/.well-known/est/requestvoucherrequest")
+  end
+
+  def fetch_voucher_request(dpp)
+    self.jrc_uri = request_voucher_request_url(dpp)
+
+    request = Net::HTTP::Post.new(self.jrc_uri)
+    request.body = voucher_request_json(dpp)
     request.content_type = 'application/json'
-    request['Accept'] = 'application/pkcs7'
+    request['Accept'] = 'application/voucher-cms+json'
     response = http_handler.request request
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
-      puts "MASA #{jrc_uri} refuses smarkaklink enroll: #{response.to_s} #{response.code}"
+      puts "AR #{jrc_uri} refuses smarkaklink voucher request request: #{response.to_s} #{response.code}"
 
     when Net::HTTPSuccess
       ct = response['Content-Type']
-      process_enroll_content_type(ct, response.body)
+      process_voucher_request_content_type(ct, response.body)
     else
       raise ArgumentError
     end
