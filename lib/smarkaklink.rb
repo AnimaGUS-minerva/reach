@@ -176,4 +176,42 @@ class Smarkaklink < Pledge
     end
   end
 
+  def generate_csr
+    csr = OpenSSL::X509::Request.new
+    csr.public_key = PledgeKeys.instance.idevid_pubkey
+  end
+
+  def request_ca_list_url(dpp)
+    URI.join("https://" + dpp.llv6, "/.well-known/est/cacerts")
+  end
+
+  def request_ca_list(dpp)
+    request = Net::HTTP::Get.new(self.jrc_ui)
+    request['Accept'] = 'application/pkcs7-mime'
+    response = http_handler.request request
+
+    case response
+    when Net::HTTPBadRequest, Net::HTTPNotFound
+      puts "AR #{self.jrc_ui} refuses to list CA certificates: #{response.to_s} #{response.code}"
+
+    when Net::HTTPSuccess
+      data = OpenSSL::CMS::ContentInfo.new(response.body.b)
+      # Extract CA Certificates
+      cert_store = OpenSSL::X509::Store.new
+
+      # walk through the certificate list and look for any self-signed certificates
+      # and put them into the cert_store.
+      certs = data.certificates
+      certs.select{ |cert| cert.issuer == cert.subject }.each { |cert| cert_store.add_cert(cert) }
+
+      # Update the security options
+      security_options[:ca_file] = ca_store
+
+      generate_csr
+
+    else
+      raise ArgumentError
+    end
+  end
+
 end
