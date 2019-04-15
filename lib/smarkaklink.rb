@@ -146,13 +146,34 @@ class Smarkaklink < Pledge
 
     when Net::HTTPSuccess
       ct = response['Content-Type']
-      process_voucher_request_content_type(ct, response.body)
+      voucher = process_voucher_request_content_type(ct, response.body)
     else
       raise ArgumentError
     end
 
+    return voucher
+  end
 
-    return PledgeKeys.instance.ldevid_pubkey
+  def process_voucher_url(dpp)
+    URI.join("https://" + dpp.llv6, "/.well-known/est/voucher")
+  end
+
+  def process_voucher(dpp, voucher)
+    self.jrc_uri = process_voucher_url(dpp)
+    request = Net::HTTP::Post.new(self.jrc_uri)
+    request.body = voucher.json_voucher
+    request.content_type = 'application/json'
+    response = http_handler.request request
+
+    case response
+    when Net::HTTPBadRequest, Net::HTTPNotFound
+      puts "AR #{self.jrc_uri} refuses MASA's voucher: #{response.to_s} #{response.code}"
+
+    when Net::HTTPSuccess
+      puts "AR #{self.jrc_ui} validates MASA's voucher"
+    else
+      raise ArgumentError
+    end
   end
 
 end
