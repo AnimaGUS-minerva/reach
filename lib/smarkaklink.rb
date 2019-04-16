@@ -214,4 +214,36 @@ class Smarkaklink < Pledge
     end
   end
 
+  def perform_simple_enroll_url(dpp)
+    URI.join("https://" + dpp.llv6, "/.well-known/est/simpleenroll")
+  end
+
+  def perform_simple_enroll(dpp, csr)
+    self.jrc_uri = perform_simple_enroll_url(dpp)
+    request = Net::HTTP::Post.new(self.jrc_uri)
+    request.body = csr.to_der
+    # Send PKCS10
+    # Receive pkcs7-mime
+    request.content_type = 'application/pkcs10'
+    request['Accept'] = 'application/pkcs7-mime'
+    response = http_handler.request request
+
+    case response
+    when Net::HTTPBadRequest, Net::HTTPNotFound
+      puts "AR #{self.jrc_ui} refuses MASA's voucher: #{response.to_s} #{response.code}"
+
+    when Net::HTTPSuccess
+      puts "AR #{self.jrc_ui} signed CSR"
+      # TODO: keep connection open - Connection 1
+      cert = OpenSSL::X509::Certificate.new(response.body)
+      validate_status(cert)
+      # Update security options
+      security_options[:verify_mode] = OpenSSL::SSL::VERIFY_PEER
+      security_options[:cert] = cert
+      cert
+    else
+      raise ArgumentError
+    end
+  end
+
 end
