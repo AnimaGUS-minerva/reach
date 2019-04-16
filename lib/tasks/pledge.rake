@@ -50,6 +50,26 @@ namespace :reach do
   # generate a voucher request with the
   # proximity-registrar-cert filled in
   # and send it to the appropriate Registrar.
+  desc "enroll using CoAP to with IDEVID=xx/PRODUCTID=zz, send to JRC=yy"
+  task :enroll_coap_pledge => :environment do
+    setup_voucher_request
+
+    client = Pledge.new
+    client.jrc = @jrcurl
+
+    voucher = client.get_constrained_voucher(true)
+    # now enroll using /simpleenroll
+
+    unless client.voucher_validate!(voucher)
+      puts "Failed to validate voucher"
+      exit 1
+    end
+    client.enroll(true)
+  end
+
+  # generate a voucher request with the
+  # proximity-registrar-cert filled in
+  # and send it to the appropriate Registrar.
   desc "enroll using HTTP to with IDEVID=xx/PRODUCTID=zz, send to JRC=yy"
   task :enroll_http_pledge => :environment do
     setup_voucher_request
@@ -60,29 +80,21 @@ namespace :reach do
     voucher = client.get_voucher(true)
     # now enroll using /simpleenroll
 
-    client.voucher_validate!(voucher)
+    unless client.voucher_validate!(voucher)
+      puts "Failed to validate voucher"
+      exit 1
+    end
     client.enroll(true)
   end
 
-  # generate a voucher request with the
-  # proximity-registrar-cert filled in
-  # and send it to the appropriate Registrar.
-  desc "construct a (signed) voucher request IDEVID=xx/PRODUCTID=zz, send to JRC=yy"
-  task :send_voucher_request => :environment do
-    setup_voucher_request
-
+  # do an EST simpleenroll with a trusted IDevID
+  desc "send a certificate signing request for PRODUCTID=zz, to JRC=yy"
+  task :simple_enroll => :environment do
     client = Pledge.new
     client.jrc = @jrcurl
 
-    voucher = client.get_voucher(true)
-
-    unless voucher
-      puts "no voucher returned"
-      exit 10
-    end
-
-    client.voucher_validate!(voucher)
-    # Registrar is now authenticated!
+    # will write the CSR to a file
+    client.enroll(true)
   end
 
 

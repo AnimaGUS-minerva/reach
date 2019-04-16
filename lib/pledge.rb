@@ -117,7 +117,7 @@ class Pledge
   end
 
   def coap_handler
-    @http_handler ||=
+    @coap_handler ||=
       Net::HTTP.start(jrc_uri.host, jrc_uri.port,
                       security_options)
   end
@@ -136,8 +136,10 @@ class Pledge
     puts "vs:   #{http_handler.peer_cert.subject.to_s}"
     if voucher.try(:pinnedDomainCert).try(:to_der) == http_handler.try(:peer_cert).try(:to_der)
       puts "Voucher authenticates this connection!"
+      return true
     else
       puts "Something went wrong, and voucher does not provide correct info"
+      return false
     end
   end
 
@@ -148,7 +150,7 @@ class Pledge
     unless Net::HTTPSuccess === response
       case response
       when Net::HTTPBadRequest, Net::HTTPNotFound
-        puts "Fountain is bad: #{response.to_s} #{response.code}"
+        puts "EST Enroll from JRC is bad: #{response.to_s} #{response.code}"
 
       else
         puts "Other: #{response}"
@@ -225,11 +227,11 @@ class Pledge
     voucher = nil
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
-      puts "Fountain is bad: #{response.to_s} #{response.code}"
+      puts "Voucher JRC is bad: #{response.to_s} #{response.code}"
 
     when Net::HTTPSuccess
       ct = response['Content-Type']
-      puts "MASA provided voucher of type #{ct}"
+      puts "MASA/JRC provided voucher of type #{ct}"
       if saveto
         File.open("tmp/voucher_#{vr.serialNumber}.pkcs", "w") do |f|
           f.syswrite response.body.b
