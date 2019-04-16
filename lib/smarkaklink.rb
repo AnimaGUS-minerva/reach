@@ -277,4 +277,35 @@ class Smarkaklink < Pledge
     end
   end
 
+  def smarkaklink_enroll(dpp)
+    # Enroll with the manufacturer
+    enroll_with_smarkaklink_manufacturer(dpp)
+
+    # Connect to BRSKI join network
+    puts "Connect to #{dpp.essid}"
+    puts "Ensure that IPv6 LL #{dpp.llv6} is alive"
+
+    # Connect to Adolescent Registrar (AR)
+    # Create TLS connection to port 8443
+
+    # Pledge Requests Voucher-Request from the Adolescent Registrar
+    voucher = fetch_voucher_request(dpp)
+
+    # Smart-Phone connects to MASA
+    puts "Connect to Internet-available network"
+    # TODO: Retrieve MASA-URL
+    signed_voucher = get_voucher(nil, voucher)
+
+    # Smartpledge processing of voucher
+    puts "Connect to #{dpp.essid}"
+    puts "Ensure that IPv6 LL #{dpp.llv6} is alive"
+    process_voucher(dpp, signed_voucher)
+
+    # Smartphone enrolls
+    csr = request_ca_list(dpp)
+
+    perform_simple_enroll(dpp, csr)
+    validate_enroll(dpp)
+  end
+
 end
