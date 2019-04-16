@@ -246,4 +246,35 @@ class Smarkaklink < Pledge
     end
   end
 
+  def validate_enroll_json
+    {
+      "version": "1",
+      "Status": "TRUE",
+      "Reason": "Enroll completed",
+      "reason-context": "Smarkaklink process finished"
+    }.to_json
+  end
+
+  def validate_enroll_url(dpp)
+    URI.join("https://" + dpp.llv6, "/.well-known/est/enrollstatus")
+  end
+
+  def validate_enroll(dpp)
+    self.jrc_uri = validate_enroll_url(dpp)
+    request = Net::HTTP::Post.new(self.jrc_uri)
+    request.body = validate_enroll_json
+    request.content_type = 'application/json'
+    response = http_handler.request request
+
+    case response
+    when Net::HTTPBadRequest, Net::HTTPNotFound
+      puts "AR #{jrc_uri} refuses smarkaklink enroll validation: #{response.to_s} #{response.code}"
+
+    when Net::HTTPSuccess
+      # TODO: Close connection 1
+    else
+      raise ArgumentError
+    end
+  end
+
 end
