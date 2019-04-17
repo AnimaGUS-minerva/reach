@@ -24,10 +24,23 @@ namespace :reach do
     dppfile = ENV['DPPFILE']
     dpp = DPPCode.new(IO::read(dppfile))
 
-    sk = SmartPledge.new
+    sk = Smarkaklink.new
     sk.smarkaklink_enroll(dpp)
+  end
 
-    # Registrar is now authenticated!
+  desc "parse SMARKAKLINK/LLv6/QRKEYFILE and enroll"
+  task :enroll => :environment do
+    dpp = DPPCode.new()
+
+    qrkeyfile = ENV['QRKEYFILE']
+    dpp.key = OpenSSL::PKey::read(IO::read(qrkeyfile))
+
+    dpp.llv6 = ENV['LLV6']
+    dpp.smarkaklink = ENV['SMARKAKLINK']
+    dpp.essid = 'ESSID'
+
+    sk = Smarkaklink.new
+    sk.smarkaklink_enroll(dpp)
   end
 
 
