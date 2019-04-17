@@ -128,11 +128,11 @@ class Smarkaklink < Pledge
   end
 
   def fetch_voucher_request_url(dpp)
-    URI.join("https://" + dpp.llv6, "/.well-known/est/requestvoucherrequest")
+    URI.join("https://[#{dpp.llv6}]", "/.well-known/est/requestvoucherrequest")
   end
 
   def fetch_voucher_request(dpp)
-    self.jrc_uri = request_voucher_request_url(dpp)
+    self.jrc_uri = fetch_voucher_request_url(dpp)
 
     request = Net::HTTP::Post.new(self.jrc_uri)
     request.body = voucher_request_json(dpp)
@@ -155,7 +155,7 @@ class Smarkaklink < Pledge
   end
 
   def process_voucher_url(dpp)
-    URI.join("https://" + dpp.llv6, "/.well-known/est/voucher")
+    URI.join("https://[${dpp.llv6}]", "/.well-known/est/voucher")
   end
 
   def process_voucher(dpp, voucher)
@@ -182,7 +182,7 @@ class Smarkaklink < Pledge
   end
 
   def request_ca_list_url(dpp)
-    URI.join("https://" + dpp.llv6, "/.well-known/est/cacerts")
+    URI.join("https://[${dpp.llv6}]", "/.well-known/est/cacerts")
   end
 
   def request_ca_list(dpp)
@@ -215,7 +215,7 @@ class Smarkaklink < Pledge
   end
 
   def perform_simple_enroll_url(dpp)
-    URI.join("https://" + dpp.llv6, "/.well-known/est/simpleenroll")
+    URI.join("https://[${dpp.llv6}]", "/.well-known/est/simpleenroll")
   end
 
   def perform_simple_enroll(dpp, csr)
@@ -256,7 +256,7 @@ class Smarkaklink < Pledge
   end
 
   def validate_enroll_url(dpp)
-    URI.join("https://" + dpp.llv6, "/.well-known/est/enrollstatus")
+    URI.join("https://[${dpp.llv6}]", "/.well-known/est/enrollstatus")
   end
 
   def validate_enroll(dpp)
