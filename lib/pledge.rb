@@ -128,6 +128,9 @@ class Pledge
   def csrattr_uri
     @csrattr_uri ||= URI::join(@jrc,"/.well-known/est/csrattributes")
   end
+  def simpleenroll_uri
+    @simpleenroll_uri ||= URI::join(@jrc,"/.well-known/est/simpleenroll")
+  end
 
   def voucher_validate!(voucher)
     voucherPinnedName = voucher.try(:pinnedDomainCert).try(:subject).try(:to_s)
@@ -159,7 +162,7 @@ class Pledge
     end
 
     ct = response['Content-Type']
-    puts "MASA provided voucher of type #{ct}"
+    puts "Registrar returned CSR of type #{ct}"
     if saveto
       File.open("tmp/csrattr.der", "wb") do |f|
         f.puts response.body
@@ -175,9 +178,37 @@ class Pledge
       return
     end
     rfc822name = san[0].value[0].value[0].value
+    puts "new device gets rfc822Name: #{rfc822name}"
 
     csr = build_csr(rfc822name)
+    if saveto
+      File.open("tmp/csr.der", "w") do |f|
+        f.syswrite csr.to_der
+      end
+    end
 
+    request = Net::HTTP::Post.new(simpleenroll_uri)
+    byebug
+    request.body         = csr.to_der
+    request.content_type = 'application/pkcs10'
+    response = http_handler.request request # Net::HTTPResponse object
+
+    byebug
+    unless Net::HTTPSuccess === response
+      case response
+      when Net::HTTPBadRequest, Net::HTTPNotFound
+        puts "EST /simpleenroll from JRC is bad: #{response.to_s} #{response.code}"
+
+      else
+        puts "Other: #{response}"
+      end
+      return
+    end
+    ct = response['Content-Type']
+    puts "Registrar returned certificate of type #{ct}"
+    File.open("tmp/certificate.der", "w") do |f|
+      f.syswrite response.body
+    end
   end
 
   def rfc822NameChoice

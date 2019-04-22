@@ -1,0 +1,4 @@
+#!/bin/sh
+
+exec rake reach:enroll_http_pledge PRODUCTID=00-D0-E5-04-00-09  JRC=https://fountain-test.example.com:8443/
+

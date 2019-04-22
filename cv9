@@ -1,0 +1,4 @@
+#!/bin/sh
+
+exec rake reach:send_constrained_request PRODUCTID=00-D0-E5-04-00-09  JRC=coaps://fountain-test.sandelman.ca/
+
