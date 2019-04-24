@@ -34,8 +34,8 @@ gem 'celluloid-io', :git => 'git@github.com:AnimaGUS-minerva/celluloid-io.git', 
 # Use Puma as the app server
 #gem 'puma', '~> 3.0'
 
-gem 'coap', :path => '../minerva/coap'
-#gem 'coap', :git => 'git@github.com:AnimaGUS-minerva/coap.git', :branch => 'dtls-client'
+#gem 'coap', :path => '../minerva/coap'
+gem 'coap', :git => 'git@github.com:AnimaGUS-minerva/coap.git', :branch => 'dtls-client'
 gem 'cbor'
 gem 'cbor-diag'
 
