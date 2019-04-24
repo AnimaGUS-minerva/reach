@@ -16,6 +16,14 @@ GIT
     ecdsa (1.3.0)
 
 GIT
+  remote: https://github.com/CIRALabs/ruby-openssl.git
+  revision: f00f1ea7654041296b98a2729326dc8648861694
+  branch: cms-added
+  specs:
+    openssl (2.2.0.pre.mcr1)
+      ipaddr
+
+GIT
   remote: https://github.com/mcr/ChariWTs.git
   revision: 1d7f81e4372809ae9e89d80ce6a3116635fb65cd
   branch: v0.7.0
@@ -30,12 +38,6 @@ PATH
     coap (0.1.5.pre)
       celluloid-io (~> 0.17.3)
       resolv-ipv6favor (~> 0)
-
-PATH
-  remote: ../minerva/ruby-openssl
-  specs:
-    openssl (2.2.0.pre.mcr1)
-      ipaddr
 
 GEM
   remote: https://rubygems.org/
