@@ -188,12 +188,10 @@ class Pledge
     end
 
     request = Net::HTTP::Post.new(simpleenroll_uri)
-    byebug
     request.body         = csr.to_der
     request.content_type = 'application/pkcs10'
     response = http_handler.request request # Net::HTTPResponse object
 
-    byebug
     unless Net::HTTPSuccess === response
       case response
       when Net::HTTPBadRequest, Net::HTTPNotFound
