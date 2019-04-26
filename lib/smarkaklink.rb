@@ -102,21 +102,21 @@ class Smarkaklink < Pledge
     return PledgeKeys.instance.ldevid_pubkey
   end
 
-  def voucher_request_json(dpp)
+  def voucher_request_json(dpp, nonce)
     # TODO: Add padding
-    ec = OpenSSL::PKey::EC::IES.new(dpp.ecdsa_key, "algorithm")
-    encrypted_nonce = ec.public_encrypt(self.sp_nonce)
+    ec = OpenSSL::PKey::EC::IES.new(dpp.key, "algorithm")
+    encrypted_nonce = ec.public_encrypt(nonce)
     { "voucher-request challenge": { "voucher-challenge-nonce": Base64.urlsafe_encode64(encrypted_nonce) } }.to_json
   end
 
-  def process_voucher_request_content_type(type, body)
+  def process_voucher_request_content_type(type, body, nonce)
     ct = Mail::Parsers::ContentTypeParser.parse(type)
 
     begin
       case [ct.main_type, ct.sub_type]
       when ['application', 'json']
         voucher_request = Chariwt::Voucher.from_pkcs7(body.b, http_handler.peer_cert)
-        if voucher_request.nonce != self.sp_nonce
+        if voucher_request.nonce != nonce
           puts "Invalid voucher-challenge-nonce from AR #{http_handler.address}"
         else
           puts "Connection with AR validated"
@@ -134,8 +134,10 @@ class Smarkaklink < Pledge
   def fetch_voucher_request(dpp)
     self.jrc_uri = fetch_voucher_request_url(dpp)
 
+    sp_nonce = SecureRandom.base64(16)
+
     request = Net::HTTP::Post.new(self.jrc_uri)
-    request.body = voucher_request_json(dpp)
+    request.body = voucher_request_json(dpp, sp_nonce)
     request.content_type = 'application/json'
     request['Accept'] = 'application/voucher-cms+json'
     response = http_handler.request request
@@ -146,7 +148,7 @@ class Smarkaklink < Pledge
 
     when Net::HTTPSuccess
       ct = response['Content-Type']
-      voucher = process_voucher_request_content_type(ct, response.body)
+      voucher = process_voucher_request_content_type(ct, response.body, sp_nonce)
     else
       raise ArgumentError
     end
