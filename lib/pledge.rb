@@ -137,6 +137,12 @@ class Pledge
     voucherPinnedName ||= "unknown"
     puts "Voucher connects to #{voucherPinnedName}"
     puts "vs:   #{http_handler.peer_cert.subject.to_s}"
+
+    unless http_handler.try(:peer_cert).try(:to_der)
+      puts "No peer certificate returned"
+      return false
+    end
+
     if voucher.try(:pinnedDomainCert).try(:to_der) == http_handler.try(:peer_cert).try(:to_der)
       puts "Voucher authenticates this connection!"
       return true
