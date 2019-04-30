@@ -104,7 +104,7 @@ class Pledge
 
   # for the IDevID enrollment, must verify the manufacturer's certificate
   def security_options
-    { :verify_mode => OpenSSL::SSL::VERIFY_PEER,
+    { :verify_mode => OpenSSL::SSL::VERIFY_NONE,
       :use_ssl => jrc_uri.scheme == 'https',
       :cert    => PledgeKeys.instance.idevid_pubkey,
       :key     => PledgeKeys.instance.idevid_privkey
