@@ -25,7 +25,6 @@ gem 'openssl', :git => 'https://github.com/CIRALabs/ruby-openssl.git', :branch =
 #gem 'chariwt', :path => '../chariwt'
 gem 'chariwt', :git => 'https://github.com/mcr/ChariWTs.git', :branch => 'v0.7.0'
 
-gem 'ecdsa',   :git => 'https://github.com/AnimaGUS-minerva/ruby_ecdsa.git', :branch => 'ecdsa_interface_openssl'
 gem 'jwt'
 
 #gem 'celluloid-io', :path => '../minerva/celluloid-io'
