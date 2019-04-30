@@ -25,7 +25,7 @@ namespace :reach do
     dpp = DPPCode.new(IO::read(dppfile))
 
     sk = Smarkaklink.new
-    sk.smarkaklink_enroll(dpp)
+    sk.smarkaklink_enroll(dpp, ENV['SAVETO'])
   end
 
   desc "parse SMARKAKLINK/LLv6/QRKEYFILE and enroll"
@@ -40,7 +40,7 @@ namespace :reach do
     dpp.essid = 'ESSID'
 
     sk = Smarkaklink.new
-    sk.smarkaklink_enroll(dpp)
+    sk.smarkaklink_enroll(dpp, ENV['SAVETO'])
   end
 
 
