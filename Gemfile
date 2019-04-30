@@ -20,8 +20,8 @@ gem 'ecdsa',   :git => 'https://github.com/AnimaGUS-minerva/ruby_ecdsa.git', :br
 
 gem 'rspec-rails', '~> 3.6'
 
-#gem 'openssl', :path => '../minerva/ruby-openssl'
-gem 'openssl', :git => 'https://github.com/CIRALabs/ruby-openssl.git', :branch => 'cms-added'
+gem 'openssl', :path => '../minerva/ruby-openssl'
+#gem 'openssl', :git => 'https://github.com/CIRALabs/ruby-openssl.git', :branch => 'ies-cms-dtls'
 #gem 'chariwt', :path => '../chariwt'
 gem 'chariwt', :git => 'https://github.com/mcr/ChariWTs.git', :branch => 'v0.7.0'
 
