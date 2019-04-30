@@ -78,7 +78,7 @@ class Smarkaklink < Pledge
     end
   end
 
-  def enroll_with_smarkaklink_manufacturer(dpp)
+  def enroll_with_smarkaklink_manufacturer(dpp, saveto = nil)
     self.jrc_uri = dpp.smarkaklink_enroll_url
 
     request = Net::HTTP::Post.new(jrc_uri)
@@ -86,6 +86,11 @@ class Smarkaklink < Pledge
     request.content_type = 'application/json'
     request['Accept'] = 'application/pkcs7'
     response = http_handler.request request
+    if saveto
+      File.open("tmp/enroll_#{PledgeKeys.instance.hunt_for_serial_number}.pkcs7", "wb") do |f|
+        f.puts response.body
+      end
+    end
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
@@ -97,7 +102,6 @@ class Smarkaklink < Pledge
     else
       raise ArgumentError
     end
-
 
     return PledgeKeys.instance.ldevid_pubkey
   end
@@ -131,7 +135,7 @@ class Smarkaklink < Pledge
     URI.join("https://[#{dpp.llv6}]", "/.well-known/est/requestvoucherrequest")
   end
 
-  def fetch_voucher_request(dpp)
+  def fetch_voucher_request(dpp, saveto = nil)
     self.jrc_uri = fetch_voucher_request_url(dpp)
 
     sp_nonce = SecureRandom.base64(16)
@@ -141,6 +145,15 @@ class Smarkaklink < Pledge
     request.content_type = 'application/json'
     request['Accept'] = 'application/voucher-cms+json'
     response = http_handler.request request
+
+    if saveto
+      File.open("tmp/spnonce_#{PledgeKeys.instance.hunt_for_serial_number}", "w") do |f|
+        f.write sp_nonce
+      end
+      File.open("tmp/vrr_#{PledgeKeys.instance.hunt_for_serial_number}.json", "w") do |f|
+        f.write request.body
+      end
+    end
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
@@ -187,7 +200,7 @@ class Smarkaklink < Pledge
     URI.join("https://[${dpp.llv6}]", "/.well-known/est/cacerts")
   end
 
-  def request_ca_list(dpp)
+  def request_ca_list(dpp, saveto = nil)
     request = Net::HTTP::Get.new(self.jrc_ui)
     request['Accept'] = 'application/pkcs7-mime'
     response = http_handler.request request
@@ -197,6 +210,12 @@ class Smarkaklink < Pledge
       puts "AR #{self.jrc_ui} refuses to list CA certificates: #{response.to_s} #{response.code}"
 
     when Net::HTTPSuccess
+      if saveto
+        File.open("tmp/cas.pkcs", "w") do |f|
+          f.puts response.body
+        end
+      end
+
       data = OpenSSL::CMS::ContentInfo.new(response.body.b)
       # Extract CA Certificates
       cert_store = OpenSSL::X509::Store.new
@@ -229,6 +248,12 @@ class Smarkaklink < Pledge
     request.content_type = 'application/pkcs10'
     request['Accept'] = 'application/pkcs7-mime'
     response = http_handler.request request
+
+    if saveto
+      File.open("tmp/#{PledgeKeys.instance.hunt_for_serial_number}.csr", "w") do |f|
+        f.puts csr.to_pemy
+      end
+    end
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
@@ -279,9 +304,9 @@ class Smarkaklink < Pledge
     end
   end
 
-  def smarkaklink_enroll(dpp)
+  def smarkaklink_enroll(dpp, saveto = nil)
     # Enroll with the manufacturer
-    enroll_with_smarkaklink_manufacturer(dpp)
+    enroll_with_smarkaklink_manufacturer(dpp, saveto)
 
     # Connect to BRSKI join network
     puts "Connect to #{dpp.essid}"
@@ -291,12 +316,12 @@ class Smarkaklink < Pledge
     # Create TLS connection to port 8443
 
     # Pledge Requests Voucher-Request from the Adolescent Registrar
-    voucher = fetch_voucher_request(dpp)
+    voucher = fetch_voucher_request(dpp, saveto)
 
     # Smart-Phone connects to MASA
     puts "Connect to Internet-available network"
     # TODO: Retrieve MASA-URL
-    signed_voucher = get_voucher(nil, voucher)
+    signed_voucher = get_voucher(saveto, voucher)
 
     # Smartpledge processing of voucher
     puts "Connect to #{dpp.essid}"
@@ -304,7 +329,7 @@ class Smarkaklink < Pledge
     process_voucher(dpp, signed_voucher)
 
     # Smartphone enrolls
-    csr = request_ca_list(dpp)
+    csr = request_ca_list(dpp, saveto)
 
     perform_simple_enroll(dpp, csr)
     validate_enroll(dpp)
