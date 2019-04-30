@@ -111,19 +111,21 @@ RSpec.describe Smarkaklink do
 
   describe "request voucher-request" do
     it "should generate a nonce, and encrypt it to AR DPP key" do
+      # XXX nonce probably needs to be deterministic for testing
       nonce = SecureRandom.base64(16)
       dc = DPPCode.new(IO::read("spec/files/dpp1.txt"))
       ek = dc.ecdsa_key
 
-      byebug
-      ec = OpenSSL::PKey::EC::IES.new(ek, "algorithm")
+      ec = OpenSSL::PKey::EC::IES.new(dc.key, "algorithm")
       encrypted = ec.public_encrypt(nonce)
 
-      blog = { "voucher-request-challenge" => Base64::urlsafe_encode64(encrypted) }
+      blob = { "voucher-request-challenge" => Base64::urlsafe_encode64(encrypted) }
+      byebug
+      expect(blob).to_not be_nil
 
-
-      sp = Smarkaklink.new
-      pk.testing_capath = "spec/files/product/Smarkaklink-1502449999/vendor_secp384r1.crt"
+      # verify a voucher-requests produced by the AR which has this blob in it.
+      sk = Smarkaklink.new
+      sk.testing_capath = "spec/files/product/Smarkaklink-1502449999/vendor_secp384r1.crt"
     end
   end
 
