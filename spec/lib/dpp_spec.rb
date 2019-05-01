@@ -49,6 +49,12 @@ RSpec.describe DPPCode do
       expect(dc.llv6).to eq("02163EFEFF8D519B")
     end
 
+    it "should decode llv6 to https" do
+      dc = DPPCode.new
+      dc.parse_one_item("L:02163EFEFF8D519B")
+      expect(dc.llv6_as_iauthority).to eq("[fe80::216:3efe:ff8d:519b]")
+    end
+
     it "should decode mac" do
       dc = DPPCode.new
       dc.parse_one_item("M:00163E8D519B")

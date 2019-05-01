@@ -41,6 +41,9 @@ gem 'cbor-diag'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.5'
 
+# IP address management for use in ANIMA ACP
+gem 'ipaddress'
+
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 

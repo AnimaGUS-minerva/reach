@@ -58,7 +58,14 @@ class DPPCode
       parse_one_item(item)
       item = colons.shift
     end
+  end
 
+  # turn compressed hex IPv6 address into something useable for HTTPS
+  # use IPAddress module
+  def llv6_as_iauthority
+    iid=ACPAddress::parse_hex llv6
+    ll = iid.set_ll_prefix
+    "[" + ll.to_s + "]"
   end
 
   # decode the iauthority or URL found in the S field, and turn it into a full
