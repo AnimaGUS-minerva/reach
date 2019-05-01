@@ -5,6 +5,16 @@ require 'json'
 
 class Smarkaklink < Pledge
 
+  def smarkaklink_pledge_handler
+    options = {
+      :verify_mode => OpenSSL::SSL::VERIFY_NONE,
+      :use_ssl => true,
+      :cert    => PledgeKeys.instance.ldevid_pubkey,
+      :key     => PledgeKeys.instance.ldevid_privkey
+    }
+    @kaklink_pledge_handler ||= Net::HTTP.start(jrc_uri.host, jrc_uri.port, options)
+  end
+
   # this initializes the system with a self-signed IDevID.
   def generate_selfidevid(dir = "db/smarkaklink")
     pi = PledgeKeys.instance
@@ -110,7 +120,9 @@ class Smarkaklink < Pledge
     # TODO: Add padding
     ec = OpenSSL::PKey::EC::IES.new(dpp.key, "algorithm")
     encrypted_nonce = ec.public_encrypt(nonce)
-    { "voucher-request challenge": { "voucher-challenge-nonce": Base64.urlsafe_encode64(encrypted_nonce) } }.to_json
+    { "ietf:request-voucher-request":
+        { "voucher-challenge-nonce": Base64.urlsafe_encode64(encrypted_nonce) }
+    }.to_json
   end
 
   def process_voucher_request_content_type(type, body, nonce)
@@ -119,9 +131,9 @@ class Smarkaklink < Pledge
     begin
       case [ct.main_type, ct.sub_type]
       when ['application', 'json']
-        voucher_request = Chariwt::Voucher.from_pkcs7(body.b, http_handler.peer_cert)
+        voucher_request = Chariwt::Voucher.from_pkcs7(body.b, smarkaklink_pledge_handler.peer_cert)
         if voucher_request.nonce != nonce
-          puts "Invalid voucher-challenge-nonce from AR #{http_handler.address}"
+          puts "Invalid voucher-challenge-nonce from AR #{smarkaklink_pledge_handler.address}"
         else
           puts "Connection with AR validated"
         end
@@ -132,7 +144,7 @@ class Smarkaklink < Pledge
   end
 
   def fetch_voucher_request_url(dpp)
-    URI.join("https://[#{dpp.llv6}]", "/.well-known/est/requestvoucherrequest")
+    URI.join("https://#{dpp.llv6_as_iauthority}", "/.well-known/est/requestvoucherrequest")
   end
 
   def fetch_voucher_request(dpp, saveto = nil)
@@ -144,13 +156,13 @@ class Smarkaklink < Pledge
     request.body = voucher_request_json(dpp, sp_nonce)
     request.content_type = 'application/json'
     request['Accept'] = 'application/voucher-cms+json'
-    response = http_handler.request request
+    response = smarkaklink_pledge_handler.request request
 
     if saveto
       File.open("tmp/spnonce_#{PledgeKeys.instance.hunt_for_serial_number}", "w") do |f|
         f.write sp_nonce
       end
-      File.open("tmp/vrr_#{PledgeKeys.instance.hunt_for_serial_number}.json", "w") do |f|
+      File.open("tmp/rvr_#{PledgeKeys.instance.hunt_for_serial_number}.json", "w") do |f|
         f.write request.body
       end
     end
@@ -310,7 +322,7 @@ class Smarkaklink < Pledge
 
     # Connect to BRSKI join network
     puts "Connect to #{dpp.essid}"
-    puts "Ensure that IPv6 LL #{dpp.llv6} is alive"
+    puts "Ensure that IPv6 LL #{dpp.llv6_as_iauthority} is alive"
 
     # Connect to Adolescent Registrar (AR)
     # Create TLS connection to port 8443
@@ -325,7 +337,7 @@ class Smarkaklink < Pledge
 
     # Smartpledge processing of voucher
     puts "Connect to #{dpp.essid}"
-    puts "Ensure that IPv6 LL #{dpp.llv6} is alive"
+    puts "Ensure that IPv6 LL #{dpp.llv6_as_iauthority} is alive"
     process_voucher(dpp, signed_voucher)
 
     # Smartphone enrolls
