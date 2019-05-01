@@ -21,6 +21,8 @@ namespace :reach do
 
   desc "parse DPPFILE=file and enroll"
   task :parse_dpp_enroll => :environment do
+    setup_env
+
     dppfile = ENV['DPPFILE']
     dpp = DPPCode.new(IO::read(dppfile))
 
@@ -28,8 +30,22 @@ namespace :reach do
     sk.smarkaklink_enroll(dpp, ENV['SAVETO'])
   end
 
+  desc "Enroll an LDevID with the manufacturer, save it to PRODUCTID=directory"
+  task :sk0_dpp_manu_enroll => :environment do
+    setup_env
+
+    dppfile = ENV['DPPFILE']
+    dpp = DPPCode.new(IO::read(dppfile))
+
+    sk = Smarkaklink.new
+    # Enroll with the manufacturer only.
+    sk.enroll_with_smarkaklink_manufacturer(dpp, ENV['SAVETO'])
+  end
+
   desc "parse SMARKAKLINK/LLv6/QRKEYFILE and enroll"
   task :enroll => :environment do
+    setup_env
+
     dpp = DPPCode.new()
 
     qrkeyfile = ENV['QRKEYFILE']
