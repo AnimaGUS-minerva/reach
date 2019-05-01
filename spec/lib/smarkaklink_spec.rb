@@ -133,4 +133,20 @@ RSpec.describe Smarkaklink do
     end
   end
 
+  describe "SPnonce encryption" do
+    it "should encrypt a nonce and then decrypt it" do
+      nonce = "abcd1234"
+      pub  = OpenSSL::X509::Certificate.new(IO::read("spec/files/jrc/router-01/jrc_prime256v1.crt"))
+      priv = OpenSSL::PKey.read(IO::read("spec/files/jrc/router-01/jrc_prime256v1.key"))
+
+      ec   = OpenSSL::PKey::EC::IES.new(pub.public_key, "algorithm")
+      encrypted = ec.public_encrypt(nonce)
+      expect(encrypted).to_not be_nil
+
+      ec2   = OpenSSL::PKey::EC::IES.new(priv, "algorithm")
+      nn    = ec2.private_decrypt(encrypted)
+      expect(nn).to eq(nonce)
+    end
+  end
+
 end
