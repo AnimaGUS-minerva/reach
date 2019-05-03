@@ -7,6 +7,7 @@ namespace :reach do
   def setup_env
     @idevid     = ENV['IDEVID']
     @productid  = ENV['PRODUCTID']
+    @saveto     = ENV['SAVETO']
 
     if (!@idevid and !@productid)
       Smarkaklink.generate_selfidevid 
@@ -27,7 +28,7 @@ namespace :reach do
     dpp = DPPCode.new(IO::read(dppfile))
 
     sk = Smarkaklink.new
-    sk.smarkaklink_enroll(dpp, ENV['SAVETO'])
+    sk.smarkaklink_enroll(dpp, @saveto)
   end
 
   desc "Enroll an LDevID with the manufacturer, save it to PRODUCTID=directory"
@@ -39,7 +40,7 @@ namespace :reach do
 
     sk = Smarkaklink.new
     # Enroll with the manufacturer only.
-    sk.enroll_with_smarkaklink_manufacturer(dpp, ENV['SAVETO'])
+    sk.enroll_with_smarkaklink_manufacturer(dpp, @saveto)
   end
 
   desc "parse SMARKAKLINK/LLv6/QRKEYFILE and enroll"
@@ -56,7 +57,7 @@ namespace :reach do
     dpp.essid = 'ESSID'
 
     sk = Smarkaklink.new
-    sk.smarkaklink_enroll(dpp, ENV['SAVETO'])
+    sk.smarkaklink_enroll(dpp, @saveto)
   end
 
 
