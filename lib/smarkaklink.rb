@@ -16,7 +16,7 @@ class Smarkaklink < Pledge
   end
 
   # this initializes the system with a self-signed IDevID.
-  def generate_selfidevid(dir = "db/smarkaklink")
+  def self.generate_selfidevid(dir = "db/smarkaklink")
     pi = PledgeKeys.instance
     pi.product_id = dir if dir
 
