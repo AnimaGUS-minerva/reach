@@ -38,9 +38,26 @@ namespace :reach do
     dppfile = ENV['DPPFILE']
     dpp = DPPCode.new(IO::read(dppfile))
 
+    PledgeKeys.instance.product_id = ENV['PRODUCTID']
+
     sk = Smarkaklink.new
     # Enroll with the manufacturer only.
     sk.enroll_with_smarkaklink_manufacturer(dpp, @saveto)
+  end
+
+  desc "Request a Voucher-Request from SHG unit, use PRODUCTID=directory"
+  task :sk1_rvr => :environment do
+    setup_env
+
+    dppfile = ENV['DPPFILE']
+    dpp = DPPCode.new(IO::read(dppfile))
+
+    PledgeKeys.instance.product_id = ENV['PRODUCTID']
+
+    sk = Smarkaklink.new
+    # Enroll with the manufacturer only.
+    puts "Ensure that IPv6 LL #{dpp.llv6_as_iauthority} is alive"
+    sk.fetch_voucher_request(dpp, ENV['SAVETO'])
   end
 
   desc "parse SMARKAKLINK/LLv6/QRKEYFILE and enroll"

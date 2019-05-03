@@ -239,6 +239,7 @@ class Pledge
   def get_voucher(saveto = nil, prior_voucher = nil)
     request = Net::HTTP::Post.new(jrc_uri)
 
+    # XXX refactor into fountain, as request-voucher-request does the same thing.
     # this needs to set the SSL client certificate somewhere.
 
     vr = Chariwt::VoucherRequest.new
