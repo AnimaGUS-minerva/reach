@@ -143,6 +143,10 @@ RSpec.describe Smarkaklink do
       encrypted = ec.public_encrypt(nonce)
       expect(encrypted).to_not be_nil
 
+      File.open("tmp/router01nonce.b64", "w") do |f|
+        f.syswrite Base64.urlsafe_encode64(encrypted)
+      end
+
       ec2   = OpenSSL::PKey::EC::IES.new(priv, "algorithm")
       nn    = ec2.private_decrypt(encrypted)
       expect(nn).to eq(nonce)
