@@ -125,14 +125,21 @@ class Smarkaklink < Pledge
     }.to_json
   end
 
-  def process_voucher_request_content_type(type, body, nonce)
+  def process_voucher_request_content_type(type, body, nonce, saveto = nil)
     ct = Mail::Parsers::ContentTypeParser.parse(type)
 
     begin
       case [ct.main_type, ct.sub_type]
-      when ['application', 'json']
-        voucher_request = Chariwt::Voucher.from_pkcs7(body.b, smarkaklink_pledge_handler.peer_cert)
-        if voucher_request.nonce != nonce
+      when ['application', 'voucher-cms+json']
+
+        if saveto
+          File.open("tmp/vr_#{PledgeKeys.instance.hunt_for_serial_number}.pkcs7", "wb") do |f|
+            f.write body.b
+          end
+        end
+        voucher_request = Chariwt::VoucherRequest.from_pkcs7(body.b)
+
+        if voucher_request.attributes["voucher-challenge-nonce"] != nonce
           puts "Invalid voucher-challenge-nonce from AR #{smarkaklink_pledge_handler.address}"
         else
           puts "Connection with AR validated"
@@ -173,7 +180,7 @@ class Smarkaklink < Pledge
 
     when Net::HTTPSuccess
       ct = response['Content-Type']
-      voucher = process_voucher_request_content_type(ct, response.body, sp_nonce)
+      voucher = process_voucher_request_content_type(ct, response.body, sp_nonce, saveto)
     else
       raise ArgumentError
     end
