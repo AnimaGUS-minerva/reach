@@ -12,7 +12,7 @@ class ACPAddress < IPAddress::IPv6
     parse_u128(addr)
   end
   def self.iid_from_eui48(eui48)
-    e64 = eui48[0..5] + "feff" + eui48[6..11]
+    e64 = eui48[0..5] + "fffe" + eui48[6..11]
     iid_from_eui64(e64)
   end
   def self.iid_from_eui(eui)
