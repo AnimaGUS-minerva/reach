@@ -154,7 +154,7 @@ class Smarkaklink < Pledge
   end
 
   def fetch_voucher_request_url(dpp)
-    URI.join("https://#{dpp.llv6_as_iauthority}", "/.well-known/est/requestvoucherrequest")
+    URI.join("https://#{dpp.llv6_as_iauthority}:8443", "/.well-known/est/requestvoucherrequest")
   end
 
   def fetch_voucher_request(dpp, saveto = nil)
