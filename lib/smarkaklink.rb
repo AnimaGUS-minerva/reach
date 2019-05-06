@@ -5,6 +5,8 @@ require 'json'
 
 class Smarkaklink < Pledge
 
+  MASAURLExtn_OID = "1.3.6.1.4.1.46930.2".freeze
+
   def smarkaklink_pledge_handler
     options = {
       :verify_mode => OpenSSL::SSL::VERIFY_NONE,
@@ -174,6 +176,9 @@ class Smarkaklink < Pledge
       end
     end
 
+    # Retrieve and store the MASA URL provided in the AR's certificate
+    @masa_url = smarkaklink_pledge_handler.peer_cert().extensions.select { |ext| ext.oid == MASAURLExtn_OID }.first.value()[2..-1]
+
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
       puts "AR #{jrc_uri} refuses smarkaklink voucher request request: #{response.to_s} #{response.code}"
@@ -323,6 +328,12 @@ class Smarkaklink < Pledge
     end
   end
 
+  def get_voucher(saveto, voucher)
+    # TODO: handle complete URI given in extension
+    self.jrc_uri = URI.join("https://" + @masa_url, "/.well-known/est/requestvoucher")
+    super(saveto, voucher)
+  end
+
   def smarkaklink_enroll(dpp, saveto = nil)
     # Enroll with the manufacturer
     enroll_with_smarkaklink_manufacturer(dpp, saveto)
@@ -339,7 +350,6 @@ class Smarkaklink < Pledge
 
     # Smart-Phone connects to MASA
     puts "Connect to Internet-available network"
-    # TODO: Retrieve MASA-URL
     signed_voucher = get_voucher(saveto, voucher)
 
     # Smartpledge processing of voucher
