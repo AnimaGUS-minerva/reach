@@ -145,6 +145,7 @@ class Smarkaklink < Pledge
           puts "Invalid voucher-challenge-nonce from AR #{smarkaklink_pledge_handler.address}"
         else
           puts "Connection with AR validated"
+          voucher_request
         end
       else
         raise ArgumentError
@@ -185,7 +186,8 @@ class Smarkaklink < Pledge
 
     when Net::HTTPSuccess
       ct = response['Content-Type']
-      voucher = process_voucher_request_content_type(ct, response.body, sp_nonce, saveto)
+      voucher = response.body
+      process_voucher_request_content_type(ct, voucher, sp_nonce, saveto)
     else
       raise ArgumentError
     end

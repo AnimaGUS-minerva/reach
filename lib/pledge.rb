@@ -248,9 +248,12 @@ class Pledge
     vr.serialNumber = vr.eui64_from_cert
     vr.createdOn    = Time.now
     vr.proximityRegistrarCert = http_handler.peer_cert
+
     if prior_voucher
+      vr.cmsSignedPriorVoucherRequest!
       vr.priorSignedVoucherRequest = prior_voucher
     end
+
     smime = vr.pkcs_sign(PledgeKeys.instance.idevid_privkey)
 
     if saveto
