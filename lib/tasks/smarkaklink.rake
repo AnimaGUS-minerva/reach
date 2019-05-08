@@ -57,7 +57,7 @@ namespace :reach do
     sk = Smarkaklink.new
     # Enroll with the manufacturer only.
     puts "Ensure that IPv6 LL #{dpp.ulanodename_iauthority} is alive"
-    sk.fetch_voucher_request(dpp, ENV['SAVETO'])
+    sk.fetch_voucher_request(dpp, @saveto)
   end
 
   desc "parse SMARKAKLINK/LLv6/QRKEYFILE and enroll"
