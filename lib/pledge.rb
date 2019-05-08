@@ -16,7 +16,11 @@ end
 class Pledge
   attr_accessor :jrc, :jrc_uri
 
-  def process_content_type(type, bodystr)
+  def process_content_type_from_masa(type, bodystr)
+    process_content_type(type, bodystr, nil)
+  end
+
+  def process_content_type(type, bodystr, extracert = PledgeKeys.instance.vendor_ca)
     ct = Mail::Parsers::ContentTypeParser.parse(type)
     voucher = nil
 
@@ -37,16 +41,16 @@ class Pledge
           @pkcs7voucher = true
         end
 
-        voucher = Chariwt::Voucher.from_pkcs7(bodystr, PledgeKeys.instance.vendor_ca)
+        voucher = Chariwt::Voucher.from_pkcs7(bodystr, extracert)
 
       when ['application','voucher-cms+cbor']
         @voucher_response_type = :pkcs7
-        voucher = Chariwt::Voucher.from_cms_cbor(bodystr, PledgeKeys.instance.vendor_ca)
+        voucher = Chariwt::Voucher.from_cms_cbor(bodystr, extracert)
 
       when ['application','voucher-cose+cbor']
         @voucher_response_type = :cbor
         @cose = true
-        voucher = Chariwt::Voucher.from_cose_cbor(bodystr, PledgeKeys.instance.vendor_ca)
+        voucher = Chariwt::Voucher.from_cose_cbor(bodystr, extracert)
 
       when ['multipart','mixed']
         @voucher_response_type = :cbor
