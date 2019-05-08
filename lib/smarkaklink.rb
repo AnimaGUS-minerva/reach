@@ -148,13 +148,14 @@ class Smarkaklink < Pledge
           voucher_request
         end
       else
+        puts "Invalid content-type #{type}"
         raise ArgumentError
       end
     end
   end
 
   def fetch_voucher_request_url(dpp)
-    URI.join("https://#{dpp.llv6_as_iauthority}:8443", "/.well-known/est/requestvoucherrequest")
+    URI.join("https://#{dpp.ulanodename_iauthority}:8443", "/.well-known/est/requestvoucherrequest")
   end
 
   def fetch_voucher_request(dpp, saveto = nil)
@@ -342,7 +343,7 @@ class Smarkaklink < Pledge
 
     # Connect to BRSKI join network
     puts "Connect to #{dpp.essid}"
-    puts "Ensure that IPv6 LL #{dpp.llv6_as_iauthority} is alive"
+    puts "Ensure that URL #{fetch_voucher_request_url} is alive"
 
     # Connect to Adolescent Registrar (AR)
     # Create TLS connection to port 8443

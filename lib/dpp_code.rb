@@ -65,7 +65,17 @@ class DPPCode
   def llv6_as_iauthority
     iid=ACPAddress::parse_hex llv6
     ll = iid.set_ll_prefix
-    "[" + ll.to_s + "]"
+    "[" + ll.to_s + "%wlan0]"
+  end
+
+  # this routine looks for ULA addresses, and then it picks out the
+  # appropriate name, and turns into an appropriate name.
+  # this should REALLY work by sending an mDNS unicast query to
+  # the LL-v6 address asking for resolution of the name "mud"
+  #
+  # for testing purposes, this is right now hard coded to [::2]
+  def ulanodename_iauthority
+    "n3CE618.router.securehomegateway.ca"
   end
 
   # decode the iauthority or URL found in the S field, and turn it into a full
