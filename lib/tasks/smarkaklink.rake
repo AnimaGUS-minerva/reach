@@ -10,7 +10,7 @@ namespace :reach do
     @saveto     = ENV['SAVETO']
 
     if (!@idevid and !@productid)
-      Smarkaklink.generate_selfidevid 
+      Smarkaklink.generate_selfidevid
     end
 
     if @productid
