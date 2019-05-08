@@ -343,7 +343,7 @@ class Smarkaklink < Pledge
 
     # Connect to BRSKI join network
     puts "Connect to #{dpp.essid}"
-    puts "Ensure that URL #{fetch_voucher_request_url} is alive"
+    puts "Ensure that URL #{fetch_voucher_request_url(dpp)} is alive"
 
     # Connect to Adolescent Registrar (AR)
     # Create TLS connection to port 8443
@@ -355,9 +355,14 @@ class Smarkaklink < Pledge
     puts "Connect to Internet-available network"
     signed_voucher = get_voucher(saveto, voucher)
 
+    unless signed_voucher
+      puts "Failed!"
+      return
+    end
+
     # Smartpledge processing of voucher
     puts "Connect to #{dpp.essid}"
-    puts "Ensure that IPv6 LL #{dpp.llv6_as_iauthority} is alive"
+    puts "Ensure that URL #{fetch_voucher_request_url(dpp)} is alive"
     process_voucher(dpp, signed_voucher)
 
     # Smartphone enrolls
