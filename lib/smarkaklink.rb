@@ -331,6 +331,11 @@ class Smarkaklink < Pledge
     end
   end
 
+  def extract_serial_number(vr)
+    cert = smarkaklink_pledge_handler.peer_cert
+    vr.serialNumber = hunt_for_serial_number_from_cert(cert)
+  end
+
   def get_voucher(saveto, voucher)
     # TODO: handle complete URI given in extension
     self.jrc_uri = URI.join("https://" + @masa_url, "/.well-known/est/requestvoucher")

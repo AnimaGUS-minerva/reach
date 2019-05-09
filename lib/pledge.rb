@@ -240,37 +240,40 @@ class Pledge
     csr
   end
 
-  def get_voucher(saveto = nil, prior_voucher = nil)
-    request = Net::HTTP::Post.new(jrc_uri)
-
-    # XXX refactor into fountain, as request-voucher-request does the same thing.
-    # this needs to set the SSL client certificate somewhere.
-
+  def setup_voucher_request(prior_voucher = nil)
     vr = Chariwt::VoucherRequest.new
     vr.generate_nonce
     vr.assertion    = :proximity
-    vr.signing_cert = PledgeKeys.instance.idevid_pubkey
-    vr.serialNumber = vr.eui64_from_cert
     vr.createdOn    = Time.now
-    vr.proximityRegistrarCert = http_handler.peer_cert
+    vr.signing_cert = PledgeKeys.instance.idevid_pubkey
 
     if prior_voucher
       vr.cmsSignedPriorVoucherRequest!
       vr.priorSignedVoucherRequest = prior_voucher
     end
+    vr
+  end
 
-    smime = vr.pkcs_sign(PledgeKeys.instance.idevid_privkey)
+  def hunt_for_serial_number_from_cert(cert)
+    attrs = Hash.new
+    serial_number = nil
+    cert.subject.to_a.each {|attr|
+      # might want to look at attr[2] for type info.
+      attrs[attr[0]] = attr[1]
+    }
 
-    if saveto
-      File.open("tmp/vr_#{vr.serialNumber}.pkcs", "w") do |f|
-        f.write smime
-      end
-    end
+    # look through in priority order
+    return serial_number if serial_number=attrs['serialNumber']
+    return serial_number if serial_number=attrs['CN']
+    return nil
+  end
 
-    request.body = smime
-    request.content_type = 'application/voucher-cms+json'
-    response = http_handler.request request # Net::HTTPResponse object
+  def extract_serial_number(vr)
+    vr.proximityRegistrarCert = http_handler.peer_cert
+    vr.serialNumber = hunt_for_serial_number_from_cert(PledgeKeys.instance.idevid_pubkey)
+  end
 
+  def handle_voucher_response(response, saveto = nil)
     voucher = nil
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
@@ -290,6 +293,35 @@ class Pledge
       byebug
     end
     voucher
+  end
+
+  def get_voucher(saveto = nil, prior_voucher = nil)
+    request = Net::HTTP::Post.new(jrc_uri)
+
+    vr = setup_voucher_request(prior_voucher)
+
+    # XXX refactor into fountain, as request-voucher-request does the same thing.
+    # this needs to set the SSL client certificate somewhere.
+    extract_serial_number(vr)
+
+    begin
+      smime = vr.pkcs_sign(PledgeKeys.instance.idevid_privkey)
+    rescue OpenSSL::PKCS7::PKCS7Error
+      puts "Some problem with signature: #{$!}"
+      return nil
+    end
+
+    if saveto
+      File.open("tmp/vr_#{vr.serialNumber}.pkcs", "w") do |f|
+        f.write smime
+      end
+    end
+
+    request.body = smime
+    request.content_type = 'application/voucher-cms+json'
+    response = http_handler.request request # Net::HTTPResponse object
+
+    return handle_voucher_response(response, saveto)
   end
 
   def get_voucher_with_unsigned(saveto = nil)
