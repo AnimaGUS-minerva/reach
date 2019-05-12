@@ -31,16 +31,11 @@ class Pledge
 
     begin
       case [ct.main_type,ct.sub_type]
-      when ['application','pkcs7-mime'], ['application','voucher-cms+json']
+      when ['application','voucher-cms+json']
         @voucher_response_type = :pkcs7
 
-
-        @smimetype = parameters['smime-type']
-        if @smimetype == 'voucher'
-          @responsetype = :pkcs7_voucher
-          @pkcs7voucher = true
-        end
-
+        @responsetype = :pkcs7_voucher
+        @pkcs7voucher = true
         voucher = Chariwt::Voucher.from_pkcs7(bodystr, extracert)
 
       when ['application','voucher-cms+cbor']
