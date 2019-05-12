@@ -336,6 +336,10 @@ class Smarkaklink < Pledge
     vr.serialNumber = hunt_for_serial_number_from_cert(cert)
   end
 
+  def masa_pubkey
+    nil
+  end
+
   def get_voucher(saveto, voucher)
     # TODO: handle complete URI given in extension
     self.jrc_uri = URI.join("https://" + @masa_url, "/.well-known/est/requestvoucher")

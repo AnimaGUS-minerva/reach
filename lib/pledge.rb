@@ -273,6 +273,10 @@ class Pledge
     vr.serialNumber = hunt_for_serial_number_from_cert(PledgeKeys.instance.idevid_pubkey)
   end
 
+  def masa_pubkey
+    PledgeKeys.instance.vendor_ca
+  end
+
   def handle_voucher_response(response, saveto = nil)
     voucher = nil
     case response
@@ -287,7 +291,7 @@ class Pledge
           f.syswrite response.body.b
         end
       end
-      voucher = process_content_type(ct, response.body)
+      voucher = process_content_type(ct, response.body, masa_pubkey)
 
     when Net::HTTPRedirection
       byebug
