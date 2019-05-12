@@ -318,6 +318,7 @@ class Pledge
 
     request.body = smime
     request.content_type = 'application/voucher-cms+json'
+    request.add_field("Accept", "application/voucher-cms+json")
     response = http_handler.request request # Net::HTTPResponse object
 
     return handle_voucher_response(response, saveto)
