@@ -189,33 +189,40 @@ class Smarkaklink < Pledge
       ct = response['Content-Type']
       voucher = response.body
       process_voucher_request_content_type(ct, voucher, sp_nonce, saveto)
+
     else
-      raise ArgumentError
+      raise ArgumentError.new("HTTP response: #{$!}")
     end
 
     return voucher
   end
 
   def process_voucher_url(dpp)
-    URI.join("https://[#{dpp.llv6}]", "/.well-known/est/voucher")
+    URI.join("https://#{dpp.ulanodename_iauthority}:8443", "/.well-known/est/voucher")
   end
 
-  def process_voucher(dpp, voucher)
+  def process_voucher(dpp, voucher, saveto = false)
     self.jrc_uri = process_voucher_url(dpp)
     request = Net::HTTP::Post.new(self.jrc_uri)
-    request.body = voucher.json_voucher
-    request.content_type = 'application/json'
-    response = http_handler.request request
+
+    request.content_type = 'application/voucher-cms+json'
+    request['Accept'] = 'application/json'
+    request.body = @raw_voucher
+
+    response = smarkaklink_pledge_handler.request request
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
       puts "AR #{self.jrc_uri} refuses MASA's voucher: #{response.to_s} #{response.code}"
+      return false
 
     when Net::HTTPSuccess
       puts "AR #{self.jrc_ui} validates MASA's voucher"
+      @telemetry = JSON::parse(response.body)
     else
       raise ArgumentError
     end
+    return @telemetry
   end
 
   def generate_csr
@@ -372,7 +379,22 @@ class Smarkaklink < Pledge
     # Smartpledge processing of voucher
     puts "Connect to #{dpp.essid}"
     puts "Ensure that URL #{fetch_voucher_request_url(dpp)} is alive"
-    process_voucher(dpp, signed_voucher)
+    status_data = process_voucher(dpp, signed_voucher, saveto)
+
+    unless status_data
+      puts "Failed to POST voucher to AR"
+      return
+    end
+    unless status_data['version'] == 1
+      puts "Invalid telemetry version"
+      return
+    end
+    unless status_data['status'] == true
+      puts "Voucher was not accepted"
+
+      # PUT telemetry to MASA.
+      return
+    end
 
     # Smartphone enrolls
     csr = request_ca_list(dpp, saveto)

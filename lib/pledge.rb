@@ -273,7 +273,7 @@ class Pledge
   end
 
   def handle_voucher_response(response, saveto = nil)
-    voucher = nil
+    @voucher = nil
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
       puts "Voucher JRC is bad: #{response.to_s} #{response.code}"
@@ -281,17 +281,18 @@ class Pledge
     when Net::HTTPSuccess
       ct = response['Content-Type']
       puts "MASA/JRC provided voucher of type #{ct}"
+      @voucher = process_content_type(ct, response.body, masa_pubkey)
+      @raw_voucher = response.body
       if saveto
-        File.open("tmp/voucher_#{vr.serialNumber}.pkcs", "w") do |f|
-          f.syswrite response.body.b
+        File.open("tmp/voucher_#{@voucher.serialNumber}.pkcs", "w") do |f|
+          f.syswrite @raw_voucher
         end
       end
-      voucher = process_content_type(ct, response.body, masa_pubkey)
 
     when Net::HTTPRedirection
       byebug
     end
-    voucher
+    @voucher
   end
 
   def get_voucher(saveto = nil, prior_voucher = nil)
