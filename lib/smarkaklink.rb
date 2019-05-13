@@ -17,6 +17,16 @@ class Smarkaklink < Pledge
     @kaklink_pledge_handler ||= Net::HTTP.start(jrc_uri.host, jrc_uri.port, options)
   end
 
+  def smarkaklink_masa_handler
+    options = {
+      :verify_mode => OpenSSL::SSL::VERIFY_NONE,   # xxx?
+      :use_ssl => true,
+      :cert    => PledgeKeys.instance.ldevid_pubkey,
+      :key     => PledgeKeys.instance.ldevid_privkey
+    }
+    @kaklink_masa_handler ||= Net::HTTP.start(jrc_uri.host, jrc_uri.port, options)
+  end
+
   # this initializes the system with a self-signed IDevID.
   def self.generate_selfidevid(dir = "db/smarkaklink")
     pi = PledgeKeys.instance
@@ -213,12 +223,16 @@ class Smarkaklink < Pledge
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
-      puts "AR #{self.jrc_uri} refuses MASA's voucher: #{response.to_s} #{response.code}"
+      puts "AR #{process_voucher_url(dpp)} had error processing MASA's voucher: #{response.to_s} #{response.code}"
       return false
 
     when Net::HTTPSuccess
-      puts "AR #{self.jrc_ui} validates MASA's voucher"
       @telemetry = JSON::parse(response.body)
+      status = @telemetry["status"]
+      puts "AR #{process_voucher_url(dpp)} accepted voucher, status=#{status}"
+      unless status == "true"
+        puts @telemetry
+      end
     else
       raise ArgumentError
     end
@@ -231,17 +245,17 @@ class Smarkaklink < Pledge
   end
 
   def request_ca_list_url(dpp)
-    URI.join("https://[#{dpp.llv6}]", "/.well-known/est/cacerts")
+    URI.join("https://#{dpp.ulanodename_iauthority}:8443", "/.well-known/est/cacerts")
   end
 
   def request_ca_list(dpp, saveto = nil)
     request = Net::HTTP::Get.new(self.jrc_ui)
     request['Accept'] = 'application/pkcs7-mime'
-    response = http_handler.request request
+    response = smarkaklink_pledge_handler.request request
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
-      puts "AR #{self.jrc_ui} refuses to list CA certificates: #{response.to_s} #{response.code}"
+      puts "AR #{request_ca_list_url} refuses to list CA certificates: #{response.to_s} #{response.code}"
 
     when Net::HTTPSuccess
       if saveto
@@ -262,8 +276,8 @@ class Smarkaklink < Pledge
       # Update the security options
       security_options[:ca_file] = ca_store
 
+      # now set things up for enrolling.
       generate_csr
-
     else
       raise ArgumentError
     end
@@ -347,10 +361,22 @@ class Smarkaklink < Pledge
     nil
   end
 
+  # on smarkaklink, need to use resulting "LDevID"
+  def signing_cert
+    PledgeKeys.instance.ldevid_pubkey
+  end
+  def voucher_request_handler
+    smarkaklink_masa_handler
+  end
+
   def get_voucher(saveto, voucher)
     # TODO: handle complete URI given in extension
     self.jrc_uri = URI.join("https://" + @masa_url, "/.well-known/est/requestvoucher")
     super(saveto, voucher)
+  end
+
+  def enroll_request_handler
+    smarkaklink_masa_handler
   end
 
   def smarkaklink_enroll(dpp, saveto = nil)

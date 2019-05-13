@@ -152,6 +152,10 @@ class Pledge
     end
   end
 
+  def enroll_request_handler
+    http_handler
+  end
+
   def enroll(saveto = nil)
     request = Net::HTTP::Get.new(csrattr_uri)
     response = http_handler.request request # Net::HTTPResponse object
@@ -235,12 +239,16 @@ class Pledge
     csr
   end
 
+  def signing_cert
+    PledgeKeys.instance.idevid_pubkey
+  end
+
   def setup_voucher_request(prior_voucher = nil)
     vr = Chariwt::VoucherRequest.new
     vr.generate_nonce
     vr.assertion    = :proximity
     vr.createdOn    = Time.now
-    vr.signing_cert = PledgeKeys.instance.idevid_pubkey
+    vr.signing_cert = signing_cert
 
     if prior_voucher
       vr.cmsSignedPriorVoucherRequest!
@@ -295,6 +303,10 @@ class Pledge
     @voucher
   end
 
+  def voucher_request_handler
+    http_handler
+  end
+
   def get_voucher(saveto = nil, prior_voucher = nil)
     request = Net::HTTP::Post.new(jrc_uri)
 
@@ -320,7 +332,7 @@ class Pledge
     request.body = smime
     request.content_type = 'application/voucher-cms+json'
     request.add_field("Accept", "application/voucher-cms+json")
-    response = http_handler.request request # Net::HTTPResponse object
+    response = voucher_request_handler.request request # Net::HTTPResponse object
 
     return handle_voucher_response(response, saveto)
   end
