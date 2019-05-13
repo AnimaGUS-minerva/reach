@@ -220,7 +220,7 @@ class Smarkaklink < Pledge
     when Net::HTTPSuccess
       @telemetry = JSON::parse(response.body)
       status = @telemetry["status"]
-      puts "AR #{process_voucher_url(dpp)} accepted voucher, status=#{status}"
+      puts "AR #{process_voucher_url(dpp)} processed voucher, status=#{status}"
       unless status == "true"
         puts @telemetry
       end
