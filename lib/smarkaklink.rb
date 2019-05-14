@@ -267,10 +267,16 @@ class Smarkaklink < Pledge
 
   def generate_csr(saveto = nil)
     csr = OpenSSL::X509::Request.new
+    # cf. RFC 5280 - to make it a "v3" certificate
+    csr.version = 2
     csr.public_key = PledgeKeys.instance.idevid_pubkey.public_key
+    serial = PledgeKeys.instance.idevid_pubkey.serial
+    csr.subject = OpenSSL::X509::Name.parse sprintf("/C=Canada/OU=Smarkaklink-%d", serial)
+
+    csr.sign(PledgeKeys.instance.idevid_privkey, OpenSSL::Digest::SHA256.new)
 
     if saveto
-      File.open("tmp/csr.pem", "w") do |f|
+      File.open("tmp/csr_#{PledgeKeys.instance.hunt_for_serial_number}.pem", "w") do |f|
         f.puts csr.to_pem
       end
     end
@@ -291,12 +297,6 @@ class Smarkaklink < Pledge
     request.content_type = 'application/pkcs10'
     request['Accept'] = 'application/pkcs7-mime'
     response = smarkaklink_pledge_handler.request request
-
-    if saveto
-      File.open("tmp/#{PledgeKeys.instance.hunt_for_serial_number}.csr", "w") do |f|
-        f.puts csr.to_pem
-      end
-    end
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
