@@ -71,16 +71,6 @@ class Smarkaklink < Pledge
 
   end
 
-  def security_options
-    { :verify_mode => OpenSSL::SSL::VERIFY_NONE,
-      :use_ssl => jrc_uri.scheme == 'https',
-      # use a dummy CA if testing, and might be connecting to testing highway.
-      :ca_file => (Rails.env.test? ? PledgeKeys.instance.testing_capath : nil),
-      :cert    => PledgeKeys.instance.idevid_pubkey,
-      :key     => PledgeKeys.instance.idevid_privkey
-    }
-  end
-
   def idevid_enroll_json
     { cert: Base64.urlsafe_encode64(PledgeKeys.instance.idevid_pubkey.to_der) }.to_json
   end
@@ -269,7 +259,7 @@ class Smarkaklink < Pledge
       cert_store.add_cert(ca)
 
       # Update the security options
-      security_options[:ca_file] = cert_store
+      smarkaklink_pledge_handler.cert_store = cert_store
     else
       raise ArgumentError
     end
@@ -318,8 +308,8 @@ class Smarkaklink < Pledge
       cert = OpenSSL::X509::Certificate.new(response.body)
       validate_status(cert)
       # Update security options
-      security_options[:verify_mode] = OpenSSL::SSL::VERIFY_PEER
-      security_options[:cert] = cert
+      smarkaklink_pledge_handler.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      smarkaklink_pledge_handler.cert = cert
       cert
     else
       raise ArgumentError
