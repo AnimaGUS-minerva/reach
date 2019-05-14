@@ -179,7 +179,8 @@ class Smarkaklink < Pledge
     end
 
     # Retrieve and store the MASA URL provided in the AR's certificate
-    @masa_url = smarkaklink_pledge_handler.peer_cert().extensions.select { |ext| ext.oid == MASAURLExtn_OID }.first.value()[2..-1]
+    @masa_cert = smarkaklink_pledge_handler.peer_cert()
+    @masa_url = @masa_cert.extensions.select { |ext| ext.oid == MASAURLExtn_OID }.first.value()[2..-1]
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
@@ -254,6 +255,7 @@ class Smarkaklink < Pledge
       # but due to https://mta.openssl.org/pipermail/openssl-users/2019-May/010465.html
       # only expect a single certificate
       cert_store = OpenSSL::X509::Store.new
+      cert_store.add_cert(@masa_cert)
 
       ca = OpenSSL::X509::Certificate.new(response.body)
       cert_store.add_cert(ca)
@@ -288,6 +290,14 @@ class Smarkaklink < Pledge
     URI.join("https://#{dpp.ulanodename_iauthority}:8443", "/.well-known/est/simpleenroll")
   end
 
+  def validate_cert(cert)
+    valid = smarkaklink_pledge_handler.cert_store.verify(cert)
+    if !valid
+      puts "Error validating AR certificate: #{smarkaklink_pledge_handler.cert_store.error_string}"
+    end
+  end
+
+
   def perform_simple_enroll(dpp, csr, saveto = nil)
     self.jrc_uri = perform_simple_enroll_url(dpp)
     request = Net::HTTP::Post.new(self.jrc_uri)
@@ -300,13 +310,28 @@ class Smarkaklink < Pledge
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
-      puts "AR #{self.jrc_ui} refuses MASA's voucher: #{response.to_s} #{response.code}"
+      puts "AR #{self.jrc_uri} refuses MASA's voucher: #{response.to_s} #{response.code}"
 
     when Net::HTTPSuccess
-      puts "AR #{self.jrc_ui} signed CSR"
+      puts "AR #{self.jrc_uri} signed CSR"
       # TODO: keep connection open - Connection 1
       cert = OpenSSL::X509::Certificate.new(response.body)
-      validate_status(cert)
+
+      if saveto
+        File.open("tmp/cert_#{PledgeKeys.instance.hunt_for_serial_number}.pem", "w") do |f|
+          f.puts cert.to_pem
+        end
+      end
+
+      if validate_cert(cert)
+        File.open(PledgeKeys.instance.pub_file, 'w') do |f|
+          f.write cert.to_pem
+        end
+        PledgeKeys.instance.idevid_pubkey = cert
+      else
+        puts "Invalid certificate"
+        raise ArgumentError
+      end
       # Update security options
       smarkaklink_pledge_handler.verify_mode = OpenSSL::SSL::VERIFY_PEER
       smarkaklink_pledge_handler.cert = cert
