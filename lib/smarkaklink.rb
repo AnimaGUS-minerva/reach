@@ -236,7 +236,8 @@ class Smarkaklink < Pledge
 
   def request_ca_list(dpp, saveto = nil)
     request = Net::HTTP::Get.new(request_ca_list_url(dpp))
-    request['Accept'] = 'application/pkcs7-mime'
+    request['Accept'] = 'application/pkix'
+    #request['Accept'] = 'application/pkcs7-mime'
     response = smarkaklink_pledge_handler.request request
 
     case response
