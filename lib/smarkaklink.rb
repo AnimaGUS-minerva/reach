@@ -249,7 +249,8 @@ class Smarkaklink < Pledge
   end
 
   def request_ca_list(dpp, saveto = nil)
-    request = Net::HTTP::Get.new(self.jrc_ui)
+    self.jrc_uri = request_ca_list_url(dpp)
+    request = Net::HTTP::Get.new(self.jrc_uri)
     request['Accept'] = 'application/pkcs7-mime'
     response = smarkaklink_pledge_handler.request request
 
@@ -259,25 +260,21 @@ class Smarkaklink < Pledge
 
     when Net::HTTPSuccess
       if saveto
-        File.open("tmp/cas.pkcs", "w") do |f|
+        File.open("tmp/ca.pem", "w") do |f|
           f.puts response.body
         end
       end
 
-      data = OpenSSL::CMS::ContentInfo.new(response.body.b)
-      # Extract CA Certificates
+      # Should really be a CMS with a list of cert,
+      # but due to https://mta.openssl.org/pipermail/openssl-users/2019-May/010465.html
+      # only expect a single certificate
       cert_store = OpenSSL::X509::Store.new
 
-      # walk through the certificate list and look for any self-signed certificates
-      # and put them into the cert_store.
-      certs = data.certificates
-      certs.select{ |cert| cert.issuer == cert.subject }.each { |cert| cert_store.add_cert(cert) }
+      ca = OpenSSL::X509::Certificate.new(response.body)
+      cert_store.add_cert(ca)
 
       # Update the security options
-      security_options[:ca_file] = ca_store
-
-      # now set things up for enrolling.
-      generate_csr
+      security_options[:ca_file] = cert_store
     else
       raise ArgumentError
     end
@@ -415,7 +412,7 @@ class Smarkaklink < Pledge
       puts "Invalid telemetry version"
       return
     end
-    unless status_data['status'] == true
+    unless status_data['status']
       puts "Voucher was not accepted"
 
       # PUT telemetry to MASA.
