@@ -239,11 +239,6 @@ class Smarkaklink < Pledge
     return @telemetry
   end
 
-  def generate_csr
-    csr = OpenSSL::X509::Request.new
-    csr.public_key = PledgeKeys.instance.idevid_pubkey
-  end
-
   def request_ca_list_url(dpp)
     URI.join("https://#{dpp.ulanodename_iauthority}:8443", "/.well-known/est/cacerts")
   end
@@ -280,11 +275,24 @@ class Smarkaklink < Pledge
     end
   end
 
-  def perform_simple_enroll_url(dpp)
-    URI.join("https://[#{dpp.llv6}]", "/.well-known/est/simpleenroll")
+  def generate_csr(saveto = nil)
+    csr = OpenSSL::X509::Request.new
+    csr.public_key = PledgeKeys.instance.idevid_pubkey.public_key
+
+    if saveto
+      File.open("tmp/csr.pem", "w") do |f|
+        f.puts csr.to_pem
+      end
+    end
+
+    csr
   end
 
-  def perform_simple_enroll(dpp, csr)
+  def perform_simple_enroll_url(dpp)
+    URI.join("https://#{dpp.ulanodename_iauthority}:8443", "/.well-known/est/simpleenroll")
+  end
+
+  def perform_simple_enroll(dpp, csr, saveto = nil)
     self.jrc_uri = perform_simple_enroll_url(dpp)
     request = Net::HTTP::Post.new(self.jrc_uri)
     request.body = csr.to_der
@@ -292,11 +300,11 @@ class Smarkaklink < Pledge
     # Receive pkcs7-mime
     request.content_type = 'application/pkcs10'
     request['Accept'] = 'application/pkcs7-mime'
-    response = http_handler.request request
+    response = smarkaklink_pledge_handler.request request
 
     if saveto
       File.open("tmp/#{PledgeKeys.instance.hunt_for_serial_number}.csr", "w") do |f|
-        f.puts csr.to_pemy
+        f.puts csr.to_pem
       end
     end
 
@@ -336,7 +344,7 @@ class Smarkaklink < Pledge
     request = Net::HTTP::Post.new(self.jrc_uri)
     request.body = validate_enroll_json
     request.content_type = 'application/json'
-    response = http_handler.request request
+    response = smarkaklink_pledge_handler.request request
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
@@ -420,9 +428,11 @@ class Smarkaklink < Pledge
     end
 
     # Smartphone enrolls
-    csr = request_ca_list(dpp, saveto)
+    request_ca_list(dpp, saveto)
 
-    perform_simple_enroll(dpp, csr)
+    csr = generate_csr(saveto)
+
+    perform_simple_enroll(dpp, csr, saveto)
     validate_enroll(dpp)
   end
 
