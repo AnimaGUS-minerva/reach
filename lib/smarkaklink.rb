@@ -235,14 +235,13 @@ class Smarkaklink < Pledge
   end
 
   def request_ca_list(dpp, saveto = nil)
-    self.jrc_uri = request_ca_list_url(dpp)
-    request = Net::HTTP::Get.new(self.jrc_uri)
+    request = Net::HTTP::Get.new(request_ca_list_url(dpp))
     request['Accept'] = 'application/pkcs7-mime'
     response = smarkaklink_pledge_handler.request request
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
-      puts "AR #{request_ca_list_url} refuses to list CA certificates: #{response.to_s} #{response.code}"
+      puts "AR #{request_ca_list_url(dpp)} refuses to list CA certificates: #{response.to_s} #{response.code}"
 
     when Net::HTTPSuccess
       if saveto
@@ -435,7 +434,7 @@ class Smarkaklink < Pledge
       puts "Invalid telemetry version"
       return
     end
-    unless status_data['status']
+    unless (status_data['status'] == "true" || status_data["status"]==true)
       puts "Voucher was not accepted"
 
       # PUT telemetry to MASA.
