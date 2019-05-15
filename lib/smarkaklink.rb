@@ -443,7 +443,9 @@ class Smarkaklink < Pledge
     csr = generate_csr(saveto)
 
     cert = perform_simple_enroll(dpp, csr, saveto)
-    puts "Enrollment completed, certificate is available"
+    puts "Enrollment completed:"
+    puts "- Private key in #{PledgeKeys.instance.priv_file}"
+    puts "- Certificate in #{PledgeKeys.instance.pub_file}"
   end
 
 end
