@@ -230,6 +230,45 @@ class Smarkaklink < Pledge
     return @telemetry
   end
 
+  def process_ca_list_content_type(type, body, saveto = nil)
+    ct = Mail::Parsers::ContentTypeParser.parse(type)
+    cert_store = OpenSSL::X509::Store.new
+    puts cert_store
+    cert_store.add_cert(@masa_cert)
+
+    begin
+      case [ct.main_type, ct.sub_type]
+      when ['application', 'pkcs7-mime']
+        # This is untested
+        if saveto
+          File.open("tmp/ca.pkcs", "wb") do |f|
+            f.puts body
+          end
+        end
+
+        data = OpenSSL::CMS::ContentInfo.new(body)
+        # walk through the certificate list and look for any self-signed certificates
+        # and put them into the cert_store.
+        certs = data.certificates
+        certs.select{ |cert| cert.issuer == cert.subject }.each { |cert| cert_store.add_cert(cert) }
+
+      when ['application', 'pkix']
+        if saveto
+          File.open("tmp/ca.pem", "w") do |f|
+            f.puts body
+          end
+        end
+
+        ca = OpenSSL::X509::Certificate.new(body)
+        cert_store.add_cert(ca)
+      else
+        puts "Invalid content-type #{type}"
+        raise ArgumentError
+      end
+    end
+    cert_store
+  end
+
   def request_ca_list_url(dpp)
     URI.join("https://#{dpp.ulanodename_iauthority}:8443", "/.well-known/est/cacerts")
   end
@@ -245,21 +284,8 @@ class Smarkaklink < Pledge
       puts "AR #{request_ca_list_url(dpp)} refuses to list CA certificates: #{response.to_s} #{response.code}"
 
     when Net::HTTPSuccess
-      if saveto
-        File.open("tmp/ca.pem", "w") do |f|
-          f.puts response.body
-        end
-      end
-
-      # Should really be a CMS with a list of cert,
-      # but due to https://mta.openssl.org/pipermail/openssl-users/2019-May/010465.html
-      # only expect a single certificate
-      cert_store = OpenSSL::X509::Store.new
-      cert_store.add_cert(@masa_cert)
-
-      ca = OpenSSL::X509::Certificate.new(response.body)
-      cert_store.add_cert(ca)
-
+      ct = response['Content-Type']
+      cert_store = process_ca_list_content_type(ct, response.body, saveto)
       # Update the security options
       smarkaklink_pledge_handler.cert_store = cert_store
     else
