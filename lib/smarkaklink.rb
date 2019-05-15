@@ -286,7 +286,6 @@ class Smarkaklink < Pledge
     when Net::HTTPSuccess
       ct = response['Content-Type']
       cert_store = process_ca_list_content_type(ct, response.body, saveto)
-      # Update the security options
       smarkaklink_pledge_handler.cert_store = cert_store
     else
       raise ArgumentError
@@ -320,9 +319,10 @@ class Smarkaklink < Pledge
     valid = smarkaklink_pledge_handler.cert_store.verify(cert)
     if !valid
       puts "Error validating AR certificate: #{smarkaklink_pledge_handler.cert_store.error_string}"
+      raise ArgumentError
     end
+    valid
   end
-
 
   def perform_simple_enroll(dpp, csr, saveto = nil)
     self.jrc_uri = perform_simple_enroll_url(dpp)
@@ -353,7 +353,6 @@ class Smarkaklink < Pledge
         File.open(PledgeKeys.instance.pub_file, 'w') do |f|
           f.write cert.to_pem
         end
-        PledgeKeys.instance.idevid_pubkey = cert
       else
         puts "Invalid certificate"
         raise ArgumentError
@@ -362,37 +361,6 @@ class Smarkaklink < Pledge
       smarkaklink_pledge_handler.verify_mode = OpenSSL::SSL::VERIFY_PEER
       smarkaklink_pledge_handler.cert = cert
       cert
-    else
-      raise ArgumentError
-    end
-  end
-
-  def validate_enroll_json
-    {
-      "version": "1",
-      "Status": "TRUE",
-      "Reason": "Enroll completed",
-      "reason-context": "Smarkaklink process finished"
-    }.to_json
-  end
-
-  def validate_enroll_url(dpp)
-    URI.join("https://[#{dpp.llv6}]", "/.well-known/est/enrollstatus")
-  end
-
-  def validate_enroll(dpp)
-    self.jrc_uri = validate_enroll_url(dpp)
-    request = Net::HTTP::Post.new(self.jrc_uri)
-    request.body = validate_enroll_json
-    request.content_type = 'application/json'
-    response = smarkaklink_pledge_handler.request request
-
-    case response
-    when Net::HTTPBadRequest, Net::HTTPNotFound
-      puts "AR #{jrc_uri} refuses smarkaklink enroll validation: #{response.to_s} #{response.code}"
-
-    when Net::HTTPSuccess
-      # TODO: Close connection 1
     else
       raise ArgumentError
     end
@@ -411,6 +379,7 @@ class Smarkaklink < Pledge
   def signing_cert
     PledgeKeys.instance.ldevid_pubkey
   end
+
   def voucher_request_handler
     smarkaklink_masa_handler
   end
@@ -473,8 +442,8 @@ class Smarkaklink < Pledge
 
     csr = generate_csr(saveto)
 
-    perform_simple_enroll(dpp, csr, saveto)
-    validate_enroll(dpp)
+    cert = perform_simple_enroll(dpp, csr, saveto)
+    puts "Enrollment completed, certificate is available"
   end
 
 end
