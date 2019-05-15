@@ -7,7 +7,7 @@ require 'chariwt'
 # do testing, so we fake it with class.instance
 #
 class PledgeKeys
-  attr_accessor :product_dir, :idevid, :dbroot, :testing_capath
+  attr_accessor :product_dir, :idevid, :dbroot, :testing_capath, :ldevid_pubkey
 
   def self.instance
     @instance ||= new
@@ -131,8 +131,8 @@ class PledgeKeys
   end
 
   def load_ldevid_pub_key
-    lpubkey_file = File.open(lpub_file,'r')
-    OpenSSL::X509::Certificate.new(lpubkey_file)
+    @lpubkey_file ||= File.open(lpub_file,'r')
+    OpenSSL::X509::Certificate.new(@lpubkey_file)
   end
 
   def load_ldevid_priv_key

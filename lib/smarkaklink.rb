@@ -342,17 +342,21 @@ class Smarkaklink < Pledge
       puts "AR #{self.jrc_uri} signed CSR"
       # TODO: keep connection open - Connection 1
       cert = OpenSSL::X509::Certificate.new(response.body)
+      certno = cert.serial
 
       if saveto
-        File.open("tmp/cert_#{PledgeKeys.instance.hunt_for_serial_number}.pem", "w") do |f|
+        file="tmp/cert_#{certno}.pem"
+        puts "Wrote certificate to #{file}"
+        File.open(file, "w") do |f|
           f.puts cert.to_pem
         end
       end
 
       if validate_cert(cert)
-        File.open(PledgeKeys.instance.pub_file, 'w') do |f|
+        File.open(PledgeKeys.instance.lpub_file, 'w') do |f|
           f.write cert.to_pem
         end
+        PledgeKeys.instance.ldevid_pubkey = cert
       else
         puts "Invalid certificate"
         raise ArgumentError
