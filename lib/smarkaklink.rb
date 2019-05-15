@@ -259,8 +259,8 @@ class Smarkaklink < Pledge
           end
         end
 
-        ca = OpenSSL::X509::Certificate.new(body)
-        cert_store.add_cert(ca)
+        @ca = OpenSSL::X509::Certificate.new(body)
+        cert_store.add_cert(@ca)
       else
         puts "Invalid content-type #{type}"
         raise ArgumentError
