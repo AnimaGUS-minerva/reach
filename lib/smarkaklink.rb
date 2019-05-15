@@ -370,6 +370,28 @@ class Smarkaklink < Pledge
     end
   end
 
+  def validate_enroll_url(dpp)
+    URI.join("https://" + @masa_url + "/.well-known/est/enrollstatus")
+  end
+
+  def validate_enroll(dpp, telemetry)
+    url = validate_enroll_url(dpp)
+    request = Net::HTTP::Post.new(url)
+    request.body = telemetry.to_json
+    request.content_type = 'application/json'
+    response = smarkaklink_masa_handler.request request
+
+    case response
+    when Net::HTTPBadRequest, Net::HTTPNotFound
+      puts "AR #{url} refuses smarkaklink enroll telemetry: #{response.to_s} #{response.code}"
+
+    when Net::HTTPSuccess
+      # TODO: Close connection 1
+    else
+      raise ArgumentError
+    end
+  end
+
   def extract_serial_number(vr)
     cert = smarkaklink_pledge_handler.peer_cert
     vr.serialNumber = hunt_for_serial_number_from_cert(cert)
@@ -447,9 +469,13 @@ class Smarkaklink < Pledge
     csr = generate_csr(saveto)
 
     cert = perform_simple_enroll(dpp, csr, saveto)
+
     puts "Enrollment completed:"
     puts "- Private key in #{PledgeKeys.instance.priv_file}"
     puts "- Certificate in #{PledgeKeys.instance.pub_file}"
+
+    puts "Reporting status to MASA"
+    validate_enroll(dpp, status_data)
   end
 
 end
