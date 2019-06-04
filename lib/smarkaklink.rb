@@ -155,7 +155,7 @@ class Smarkaklink < Pledge
   end
 
   def fetch_voucher_request_url(dpp)
-    URI.join("https://#{dpp.ulanodename_iauthority}:8443", "/.well-known/est/requestvoucherrequest")
+    URI.join("https://#{dpp.ulanodename_iauthority}:#{dpp.mudport}", "/.well-known/est/requestvoucherrequest")
   end
 
   def fetch_voucher_request(dpp, saveto = nil)
@@ -199,7 +199,7 @@ class Smarkaklink < Pledge
   end
 
   def process_voucher_url(dpp)
-    URI.join("https://#{dpp.ulanodename_iauthority}:8443", "/.well-known/est/voucher")
+    URI.join("https://#{dpp.ulanodename_iauthority}:#{dpp.mudport}", "/.well-known/est/voucher")
   end
 
   def process_voucher(dpp, voucher, saveto = false)
@@ -270,7 +270,7 @@ class Smarkaklink < Pledge
   end
 
   def request_ca_list_url(dpp)
-    URI.join("https://#{dpp.ulanodename_iauthority}:8443", "/.well-known/est/cacerts")
+    URI.join("https://#{dpp.ulanodename_iauthority}:#{dpp.mudport}", "/.well-known/est/cacerts")
   end
 
   def request_ca_list(dpp, saveto = nil)
@@ -312,7 +312,7 @@ class Smarkaklink < Pledge
   end
 
   def perform_simple_enroll_url(dpp)
-    URI.join("https://#{dpp.ulanodename_iauthority}:8443", "/.well-known/est/simpleenroll")
+    URI.join("https://#{dpp.ulanodename_iauthority}:#{dpp.mudport}", "/.well-known/est/simpleenroll")
   end
 
   def validate_cert(cert)
@@ -429,7 +429,7 @@ class Smarkaklink < Pledge
     puts "Ensure that URL #{fetch_voucher_request_url(dpp)} is alive"
 
     # Connect to Adolescent Registrar (AR)
-    # Create TLS connection to port 8443
+    # Create TLS connection to port 8081
 
     # Pledge Requests Voucher-Request from the Adolescent Registrar
     voucher = fetch_voucher_request(dpp, saveto)

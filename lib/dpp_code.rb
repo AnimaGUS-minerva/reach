@@ -78,6 +78,10 @@ class DPPCode
     ENV['NODENAME'] || "n3CE618.router.securehomegateway.ca"
   end
 
+  def mudport
+    ENV['NODEPORT'] || 8081
+  end
+
   # decode the iauthority or URL found in the S field, and turn it into a full
   # URL
   def self.canonicalize_masa_url(url)
