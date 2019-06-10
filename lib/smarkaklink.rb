@@ -121,6 +121,7 @@ class Smarkaklink < Pledge
   def voucher_request_json(dpp, nonce)
     # TODO: Add padding
     ec = OpenSSL::PKey::EC::IES.new(dpp.key, "algorithm")
+    puts "Nonce is #{nonce}"
     encrypted_nonce = ec.public_encrypt(nonce)
     { "ietf:request-voucher-request":
         { "voucher-challenge-nonce": Base64.urlsafe_encode64(encrypted_nonce) }
@@ -155,7 +156,7 @@ class Smarkaklink < Pledge
   end
 
   def fetch_voucher_request_url(dpp)
-    URI.join("https://#{dpp.ulanodename_iauthority}:#{dpp.mudport}", "/.well-known/est/requestvoucherrequest")
+    URI.join("https://mud.#{dpp.ulanodename_iauthority}:#{dpp.mudport}", "/.well-known/est/requestvoucherrequest")
   end
 
   def fetch_voucher_request(dpp, saveto = nil)
@@ -180,7 +181,15 @@ class Smarkaklink < Pledge
 
     # Retrieve and store the MASA URL provided in the AR's certificate
     @masa_cert = smarkaklink_pledge_handler.peer_cert()
-    @masa_url = @masa_cert.extensions.select { |ext| ext.oid == MASAURLExtn_OID }.first.value()[2..-1]
+    masa_url_ext = @masa_cert.extensions.select { |ext| ext.oid == MASAURLExtn_OID }.try(:first)
+    @masa_url = dpp.smarkaklink
+    if masa_url_ext
+      o_url = @masa_url
+      @masa_url = masa_url_ext.value()[2..-1]
+      puts "Overridding #{o_url} with extension value #{@masa_url}"
+    end
+
+    puts "Storing MASA URL to be #{@masa_url}"
 
     case response
     when Net::HTTPBadRequest, Net::HTTPNotFound
@@ -192,7 +201,7 @@ class Smarkaklink < Pledge
       process_voucher_request_content_type(ct, voucher, sp_nonce, saveto)
 
     else
-      raise ArgumentError.new("HTTP response: #{$!}")
+      raise ArgumentError.new("HTTP response #{response}")
     end
 
     return voucher
