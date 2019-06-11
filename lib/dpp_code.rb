@@ -75,7 +75,11 @@ class DPPCode
   #
   # for testing purposes, this is right now hard coded to [::2]
   def ulanodename_iauthority
-    "n3CE618.router.securehomegateway.ca"
+    ENV['NODENAME'] || "n3CE618.router.securehomegateway.ca"
+  end
+
+  def mudport
+    ENV['NODEPORT'] || 8081
   end
 
   # decode the iauthority or URL found in the S field, and turn it into a full
