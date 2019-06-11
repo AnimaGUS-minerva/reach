@@ -234,6 +234,8 @@ class Smarkaklink < Pledge
         puts @telemetry
       end
     else
+      puts "Unknown error code: #{response}"
+      byebug
       raise ArgumentError
     end
     return @telemetry
