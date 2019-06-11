@@ -159,36 +159,42 @@ class Pledge
   def enroll(saveto = nil)
     request = Net::HTTP::Get.new(csrattr_uri)
     response = http_handler.request request # Net::HTTPResponse object
+    rfc822name = nil
 
     unless Net::HTTPSuccess === response
       case response
-      when Net::HTTPBadRequest, Net::HTTPNotFound
+      when Net::HTTPNotFound
+        puts "EST Enroll, CSR attributes denied #{response.to_s}, skipped "
+        rfc822name = "reach@" + `hostname`
+
+      when Net::HTTPBadRequest
         puts "EST Enroll from JRC is bad: #{response.to_s} #{response.code}"
+        return
 
       else
         puts "Other: #{response}"
+        return
       end
-      return
-    end
-
-    ct = response['Content-Type']
-    puts "Registrar returned CSR of type #{ct}"
-    if saveto
-      File.open("tmp/csrattr.der", "wb") do |f|
-        f.puts response.body
+    else
+      ct = response['Content-Type']
+      puts "Registrar returned CSR of type #{ct}"
+      if saveto
+        File.open("tmp/csrattr.der", "wb") do |f|
+          f.puts response.body
+        end
       end
-    end
 
-    ca = CSRAttributes.from_der(response.body)
-    san = ca.find_subjectAltName
+      ca = CSRAttributes.from_der(response.body)
+      san = ca.find_subjectAltName
 
-    # correct name is in san[0].value[0].value[0].value
-    unless san[0] and san[0].value[0] and san[0].value[0].value[0]
-      puts "Can not find subjectAltName!"
-      return
+      # correct name is in san[0].value[0].value[0].value
+      unless san[0] and san[0].value[0] and san[0].value[0].value[0]
+        puts "Can not find subjectAltName!"
+        return
+      end
+      rfc822name = san[0].value[0].value[0].value
+      puts "new device gets rfc822Name: #{rfc822name}"
     end
-    rfc822name = san[0].value[0].value[0].value
-    puts "new device gets rfc822Name: #{rfc822name}"
 
     csr = build_csr(rfc822name)
     if saveto
@@ -289,8 +295,13 @@ class Pledge
     when Net::HTTPSuccess
       ct = response['Content-Type']
       puts "MASA/JRC provided voucher of type #{ct}"
-      @voucher = process_content_type(ct, response.body, masa_pubkey)
       @raw_voucher = response.body
+      if saveto
+        File.open("tmp/voucher_NEW.pkcs", "w") do |f|
+          f.syswrite @raw_voucher
+        end
+      end
+      @voucher = process_content_type(ct, response.body, masa_pubkey)
       if saveto
         File.open("tmp/voucher_#{@voucher.serialNumber}.pkcs", "w") do |f|
           f.syswrite @raw_voucher
@@ -444,7 +455,7 @@ class Pledge
       if voucher
         if saveto
           File.open("tmp/voucher_#{voucher.serialNumber}.vch", "wb") do |f|
-            f.puts response.payload
+            f.syswrite response.payload
           end
         end
       else
