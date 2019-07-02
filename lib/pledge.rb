@@ -336,7 +336,7 @@ class Pledge
     extract_serial_number(vr)
 
     begin
-      smime = vr.pkcs_sign(PledgeKeys.instance.idevid_privkey)
+      smime = vr.pkcs_sign_bin(PledgeKeys.instance.idevid_privkey)
     rescue OpenSSL::PKCS7::PKCS7Error
       puts "Some problem with signature: #{$!}"
       return nil
