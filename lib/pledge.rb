@@ -114,7 +114,7 @@ class Pledge
     unless @http_handler
       @http_handler = Net::HTTP.new(jrc_uri.host, jrc_uri.port)
       # open code this so that set_debug_output can be used.
-      @http_handler.set_debug_output($stderr)
+      @http_handler.set_debug_output($stderr) if ENV['DEBUG']
       @http_handler.use_ssl = true
       @http_handler.cert = PledgeKeys.instance.idevid_pubkey
       @http_handler.key  = PledgeKeys.instance.idevid_privkey
