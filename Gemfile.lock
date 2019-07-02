@@ -1,6 +1,6 @@
 GIT
   remote: git@github.com:AnimaGUS-minerva/celluloid-io.git
-  revision: 43439625828cb1821ab01e6a1f1658e13bd5e20a
+  revision: 7bb34a71f245d6b7eed61f845c82b8a85fd8499e
   submodules: true
   specs:
     celluloid-io (0.17.3)
@@ -10,7 +10,7 @@ GIT
 
 GIT
   remote: git@github.com:AnimaGUS-minerva/coap.git
-  revision: 215bb8038b1683771975a1d749e28d05c6dadcfc
+  revision: 7bb921cbea8411d8bed809dd74c3f3c39437b196
   branch: dtls-client
   specs:
     coap (0.1.5.pre)
@@ -18,20 +18,20 @@ GIT
       resolv-ipv6favor (~> 0)
 
 GIT
+  remote: https://github.com/AnimaGUS-minerva/ChariWTs.git
+  revision: c2b1f1cda3b22bb7c6b6cf5a78174436a5225cbb
+  branch: v0.8.0
+  specs:
+    chariwt (0.8.2)
+      cbor (~> 0.5.0)
+      ecdsa (~> 1.3.0)
+
+GIT
   remote: https://github.com/AnimaGUS-minerva/ruby_ecdsa.git
   revision: 64eb588befbf65fe58209d20d5a12da646077c5b
   branch: ecdsa_interface_openssl
   specs:
     ecdsa (1.3.0)
-
-GIT
-  remote: https://github.com/mcr/ChariWTs.git
-  revision: 1d7f81e4372809ae9e89d80ce6a3116635fb65cd
-  branch: v0.7.0
-  specs:
-    chariwt (0.7.1)
-      cbor (~> 0.5.0)
-      ecdsa (~> 1.3.0)
 
 PATH
   remote: ../minerva/ruby-openssl
@@ -88,7 +88,7 @@ GEM
     arel (9.0.0)
     builder (3.2.3)
     byebug (11.0.1)
-    cbor (0.5.9.3)
+    cbor (0.5.9.6)
     cbor-diag (0.5.5)
       json
       neatjson
@@ -116,19 +116,18 @@ GEM
     crass (1.0.4)
     diff-lcs (1.3)
     erubi (1.8.0)
-    ffi (1.10.0)
+    ffi (1.11.1)
     globalid (0.4.2)
       activesupport (>= 4.2.0)
-    hashdiff (0.3.9)
+    hashdiff (0.4.0)
     i18n (1.6.0)
       concurrent-ruby (~> 1.0)
     ipaddr (1.2.2)
     ipaddress (0.8.3)
-    jbuilder (2.8.0)
+    jbuilder (2.9.1)
       activesupport (>= 4.2.0)
-      multi_json (>= 1.2)
     json (2.2.0)
-    jwt (2.1.0)
+    jwt (2.2.1)
     listen (3.1.5)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
@@ -145,13 +144,12 @@ GEM
     mini_mime (1.0.1)
     mini_portile2 (2.4.0)
     minitest (5.11.3)
-    multi_json (1.13.1)
     neatjson (0.8.4)
     nio4r (2.3.1)
     nokogiri (1.10.3)
       mini_portile2 (~> 2.4.0)
     polyglot (0.3.5)
-    public_suffix (3.0.3)
+    public_suffix (3.1.1)
     rack (2.0.7)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
@@ -184,12 +182,12 @@ GEM
     rb-inotify (0.10.0)
       ffi (~> 1.0)
     resolv-ipv6favor (0.0.0)
-    rspec-core (3.8.0)
+    rspec-core (3.8.2)
       rspec-support (~> 3.8.0)
-    rspec-expectations (3.8.3)
+    rspec-expectations (3.8.4)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.8.0)
-    rspec-mocks (3.8.0)
+    rspec-mocks (3.8.1)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.8.0)
     rspec-rails (3.8.2)
@@ -200,11 +198,10 @@ GEM
       rspec-expectations (~> 3.8.0)
       rspec-mocks (~> 3.8.0)
       rspec-support (~> 3.8.0)
-    rspec-support (3.8.0)
+    rspec-support (3.8.2)
     ruby_dep (1.5.0)
     safe_yaml (1.0.5)
-    spring (2.0.2)
-      activesupport (>= 4.2)
+    spring (2.1.0)
     spring-watcher-listen (2.0.1)
       listen (>= 2.7, < 4.0)
       spring (>= 1.2, < 3.0)
@@ -223,13 +220,13 @@ GEM
       polyglot (~> 0.3)
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
-    webmock (3.5.1)
+    webmock (3.6.0)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
-      hashdiff
-    websocket-driver (0.7.0)
+      hashdiff (>= 0.4.0, < 2.0.0)
+    websocket-driver (0.7.1)
       websocket-extensions (>= 0.1.0)
-    websocket-extensions (0.1.3)
+    websocket-extensions (0.1.4)
 
 PLATFORMS
   ruby
