@@ -343,7 +343,7 @@ class Pledge
     end
 
     if saveto
-      File.open("tmp/vr_#{vr.serialNumber}.pkcs", "w") do |f|
+      File.open("tmp/vr_#{vr.serialNumber}.pkcs", "wb") do |f|
         f.write smime
       end
     end
