@@ -296,9 +296,11 @@ class Pledge
 
   def handle_voucher_response(response, saveto = nil)
     @voucher = nil
+
     case response
-    when Net::HTTPBadRequest, Net::HTTPNotFound
+    when Net::HTTPNotAcceptable, Net::HTTPBadRequest, Net::HTTPNotFound
       puts "Voucher JRC is bad: #{response.to_s} #{response.code}"
+      return nil
 
     when Net::HTTPSuccess
       ct = response['Content-Type']
@@ -317,6 +319,8 @@ class Pledge
       end
 
     when Net::HTTPRedirection
+      byebug
+    else
       byebug
     end
     @voucher

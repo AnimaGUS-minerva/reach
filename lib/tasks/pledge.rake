@@ -80,6 +80,8 @@ namespace :reach do
     voucher = client.get_voucher(true)
     # now enroll using /simpleenroll
 
+    exit 3 unless voucher
+
     unless client.voucher_validate!(voucher)
       puts "Failed to validate voucher"
       exit 1
