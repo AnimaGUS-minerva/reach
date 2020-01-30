@@ -318,6 +318,10 @@ class Pledge
         end
       end
 
+    when Net::HTTPInternalServerError
+      puts "#{response.to_s} when talking to Registrar"
+      return nil
+
     when Net::HTTPRedirection
       byebug
     else
@@ -352,7 +356,7 @@ class Pledge
       end
     end
 
-    request.body = Base64.decode64(smime)
+    request.body = smime
     request.content_type = 'application/voucher-cms+json'
     request.add_field("Accept", "application/voucher-cms+json")
     response = voucher_request_handler.request request # Net::HTTPResponse object
