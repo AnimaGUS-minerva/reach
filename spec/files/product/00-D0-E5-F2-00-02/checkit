@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -e
+
+openssl verify -CAfile vendor.crt device.crt
+openssl cms -verify -in voucher_00-D0-E5-F2-00-02.pkcs -inform DER -CAfile vendor.crt >1_voucher.json
+openssl cms -verify -in vr_00-D0-E5-F2-00-02.pkcs -inform DER -CAfile vendor.crt >1_vr.json
+openssl cms -verify -in <(base64 -d parboiled_vr_00-D0-E5-F2-00-02.b64) -inform DER -CAfile ownerca_secp384r1.crt -purpose any >1_parboiled.json
+
+
