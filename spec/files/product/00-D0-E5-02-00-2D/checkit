@@ -1,2 +1,3 @@
 #!/bin/sh
 
+openssl verify -CAfile vendor.crt device.crt
