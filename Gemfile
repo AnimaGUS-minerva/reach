@@ -10,8 +10,18 @@ end
 gem 'rails', '~> 5.2.0'
 
 # restrictions due to CVEs
-gem "rack", ">= 2.0.6"
-gem "loofah", ">= 2.2.3"
+gem "rack", ">= 2.1.4"
+gem "loofah", ">= 2.3.1"
+gem "activerecord", ">= 5.2.4.5"
+gem "activesupport", ">= 5.2.4.3"
+gem "actionpack", ">= 5.2.4.3"
+gem "activestorage", ">= 5.2.4.3"
+gem "actionview", ">= 5.2.4.4"
+gem "nokogiri", ">= 1.11.0"
+gem "json", ">= 2.3.0"
+
+gem "websocket-extensions", ">= 0.1.5"
+
 
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3', "~> 1.3.6"
