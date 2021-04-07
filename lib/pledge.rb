@@ -227,7 +227,7 @@ class Pledge
       return
     end
     ct = response['Content-Type']
-    puts "Registrar returned certificate of type #{ct}"
+    puts "Registrar returned certificate of type #{ct} [in tmp/certificate.der]"
     File.open("tmp/certificate.der", "w") do |f|
       f.syswrite response.body
     end
