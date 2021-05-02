@@ -37,14 +37,15 @@ gem 'chariwt', :git => 'https://github.com/AnimaGUS-minerva/ChariWTs.git', :bran
 
 gem 'jwt'
 
-#gem 'celluloid-io', :path => '../minerva/celluloid-io'
-gem 'celluloid-io', :git => 'git@github.com:AnimaGUS-minerva/celluloid-io.git', :submodules => true
+gem 'celluloid', "~> 0.17.0"
+gem 'celluloid-io', :path => '../minerva/celluloid-io'
+#gem 'celluloid-io', :git => 'git@github.com:AnimaGUS-minerva/celluloid-io.git', :submodules => true, :branch => '0.17-dtls'
 
 # Use Puma as the app server
 #gem 'puma', '~> 3.0'
 
-#gem 'coap', :path => '../minerva/coap'
-gem 'coap', :git => 'git@github.com:AnimaGUS-minerva/coap.git', :branch => 'dtls-client'
+gem 'coap', :path => '../minerva/coap'
+#gem 'coap', :git => 'git@github.com:AnimaGUS-minerva/coap.git', :branch => 'dtls-client'
 gem 'cbor'
 gem 'cbor-diag'
 
