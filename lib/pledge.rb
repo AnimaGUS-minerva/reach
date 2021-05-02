@@ -188,7 +188,7 @@ class Pledge
       puts "Registrar returned CSR of type #{ct}"
       if saveto
         File.open("tmp/csrattr.der", "wb") do |f|
-          f.puts response.body
+          f.write response.body
         end
       end
 
