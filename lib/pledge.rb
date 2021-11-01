@@ -124,14 +124,8 @@ class Pledge
     @http_handler
   end
 
-  def coap_handler
-    @coap_handler ||=
-      Net::HTTP.start(jrc_uri.host, jrc_uri.port,
-                      security_options)
-  end
-
   def jrc_uri
-    @jrc_uri ||= URI::join(@jrc,"/.well-known/est/requestvoucher")
+    @jrc_uri ||= URI::join(@jrc,"/.well-known/brski/requestvoucher")
   end
   def csrattr_uri
     @csrattr_uri ||= URI::join(@jrc,"/.well-known/est/csrattributes")
@@ -413,27 +407,54 @@ class Pledge
     voucher
   end
 
-  def get_constrained_voucher(saveto = nil)
-
+  def get_constrained_connection()
     client = CoAP::Client.new(host: jrc_uri.hostname, scheme: jrc_uri.scheme)
     client.client_cert = PledgeKeys.instance.idevid_pubkey
     client.client_key  = PledgeKeys.instance.idevid_privkey
+
+    # Add CCM8 to list.
+    client.dtlsctx.ciphers = "ECDHE-ECDSA-AES128-CCM8"
     client.logger.level = Logger::DEBUG
     client.logger.debug("STARTING")
-    client.client_cert = PledgeKeys.instance.idevid_pubkey
 
     CoRE::CoAP::Transmission.client_debug=true
+    client
+  end
 
-    result = client.get('/.well-known/core?rt=ace.est')
+  def get_https_connection
+    http_handler
+  end
 
-    links = CoRE::Link.parse(result.payload)
+  def get_constrained_voucher(saveto = nil)
+    case jrc_uri.scheme
+    when 'https'
+      client = get_https_connection
+      @rv_uri = jrc_uri
+    when 'coaps'
+      client = get_constrained_connection
 
-    print "Ready?  "
-    ans = STDIN.gets
-    puts "proceeding..."
+      @rv_uri = jrc_uri
+      @rv_uri.path = "/.well-known/brski/rv"
 
-    @rv_uri = jrc_uri.merge(links.uri)
-    @rv_uri.path += "/rv"
+      if ENV['LINKLIST']
+        result = client.get('/.well-known/core?rt=ace.est')
+        links = CoRE::Link.parse(result.payload)
+
+        print "Ready?  "
+        ans = STDIN.gets
+        puts "proceeding..."
+
+        @rv_uri = jrc_uri.merge(links.uri)
+        @rv_uri.path += "/rv"
+      end
+
+      # set block size bigger.
+      client.max_payload = 1024
+
+    else
+      puts "Some error in URL: #{jrc_uri.scheme}"
+      exit 3
+    end
 
     vr = Chariwt::VoucherRequest.new(:format => :cose_cbor)
     vr.generate_nonce
@@ -450,32 +471,41 @@ class Pledge
       end
     end
 
-    # set block size bigger.
-    client.max_payload = 1024
+    case jrc_uri.scheme
+    when 'https'
+      request = Net::HTTP::Post.new(jrc_uri)
+      request.body = cose
+      request.content_type = 'application/voucher-cose+cbor'
+      request.add_field("Accept", "application/voucher-cose+cbor")
+      response = client.request request # Net::HTTPResponse object
+      voucher = handle_voucher_response(response, saveto)
 
-    # host=nil, port=nil to get preset values above.
-    # payload = cose
-    # then options...
-    response = client.post(@rv_uri, nil, nil, cose,
-                           {:content_format => 'application/cose; cose-type="cose-sign"'})
+    when 'coaps'
+      # host=nil, port=nil to get preset values above.
+      # payload = cose
+      # then options...
+      response = client.post(@rv_uri, nil, nil, cose,
+                             {:content_format => "application/cose; cose-type=""cose-sign1\""})
 
-    voucher = nil
-    case
-    when response.mcode[0] == 5
-      raise VoucherRequest::BadMASA
 
-    when response.mcode == [2,5]
-      ct = response.options[:content_format]
-      puts "MASA provided voucher of type #{ct}"
-      voucher = process_constrained_content_type(ct, response.payload)
-      if voucher
-        if saveto
-          File.open("tmp/voucher_#{voucher.serialNumber}.vch", "wb") do |f|
-            f.syswrite response.payload
+      voucher = nil
+      case
+      when response.mcode[0] == 5
+        raise VoucherRequest::BadMASA
+
+      when response.mcode == [2,5]
+        ct = response.options[:content_format]
+        puts "MASA provided voucher of type #{ct}"
+        voucher = process_constrained_content_type(ct, response.payload)
+        if voucher
+          if saveto
+            File.open("tmp/voucher_#{voucher.serialNumber}.vch", "wb") do |f|
+              f.syswrite response.payload
+            end
           end
+        else
+          nil
         end
-      else
-        nil
       end
     end
     voucher
