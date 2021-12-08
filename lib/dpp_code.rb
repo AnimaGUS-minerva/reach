@@ -86,7 +86,7 @@ class DPPCode
   # URL
   def self.canonicalize_masa_url(url)
     if !url.blank? and !url.include?("/")
-      url = "https://" + url + "/.well-known/est/"
+      url = "https://" + url + "/.well-known/brski/"
     else
       # make sure that there is a trailing /
       unless url[-1] == "/"
