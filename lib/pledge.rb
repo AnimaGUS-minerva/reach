@@ -412,10 +412,12 @@ class Pledge
     client.client_cert = PledgeKeys.instance.idevid_pubkey
     client.client_key  = PledgeKeys.instance.idevid_privkey
 
-    # Add CCM8 to list.
-    client.dtlsctx.ciphers = "ECDHE-ECDSA-AES128-CCM8"
+    # Add CCM8 to list: the TLS1.2 name is ECDHE-ECDSA-AES128-CCM8
+    #                       TLS1.3 name is TLS_AES_128_CCM_8_SHA256
+    #client.dtlsctx.ciphers = "ECDHE-ECDSA-AES128-CCM:TLS_AES_128_GCM_SHA256:ECDHE-ECDSA-AES128-CCM8:TLS_AES_128_CCM_8_SHA256"
+    #client.dtlsctx.ciphers = "ECDHE-ECDSA-AES128-CCM:ECDHE-ECDSA-AES128-CCM8"
     client.logger.level = Logger::DEBUG
-    client.logger.debug("STARTING")
+    client.logger.debug("STARTING: #{client.dtlsctx.ciphers}")
 
     CoRE::CoAP::Transmission.client_debug=true
     client
