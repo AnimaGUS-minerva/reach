@@ -16,7 +16,9 @@ PATH
   remote: ../minerva/celluloid-io
   specs:
     celluloid-io (0.17.3)
+      celluloid (>= 0.17.2)
       nio4r (>= 1.1)
+      timers (>= 4.1.1)
 
 PATH
   remote: ../minerva/coap
