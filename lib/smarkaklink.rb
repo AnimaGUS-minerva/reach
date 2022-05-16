@@ -121,7 +121,7 @@ class Smarkaklink < Pledge
   def voucher_request_json(dpp, nonce)
     # TODO: Add padding
     ec = OpenSSL::PKey::EC::IES.new(dpp.key, "algorithm")
-    puts "Nonce is #{nonce}"
+    puts "Nonce is #{nonce}, key: #{dpp.key.to_pem}"
     encrypted_nonce = ec.public_encrypt(nonce)
     { "ietf:request-voucher-request":
         { "voucher-challenge-nonce": Base64.urlsafe_encode64(encrypted_nonce) }
@@ -156,7 +156,11 @@ class Smarkaklink < Pledge
   end
 
   def fetch_voucher_request_url(dpp)
-    URI.join("https://mud.#{dpp.ulanodename_iauthority}:#{dpp.mudport}", "/.well-known/est/requestvoucherrequest")
+    if ENV['JRC']
+      URI.parse(ENV['JRC'])
+    else
+      URI.join("https://mud.#{dpp.ulanodename_iauthority}:#{dpp.mudport}", "/.well-known/brski/requestvoucherrequest")
+    end
   end
 
   def fetch_voucher_request(dpp, saveto = nil)
