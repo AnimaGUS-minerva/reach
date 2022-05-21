@@ -466,7 +466,7 @@ class Pledge
     vr.generate_nonce
     vr.assertion    = :proximity
     vr.signing_cert = PledgeKeys.instance.idevid_pubkey
-    vr.serialNumber = vr.eui64_from_cert
+    vr.serialNumber = vr.serialNumber_from_cert
     vr.createdOn    = Time.now
     vr.proximityRegistrarCert = client.peer_cert
     cose = vr.cose_sign(PledgeKeys.instance.idevid_privkey)
