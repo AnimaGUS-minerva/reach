@@ -17,7 +17,7 @@ gem "activesupport", ">= 5.2.4.3"
 gem "actionpack", ">= 5.2.4.3"
 gem "activestorage", ">= 5.2.4.3"
 gem "actionview", ">= 5.2.7.1"
-gem "nokogiri", ">= 1.11.0"
+gem "nokogiri", ">= 1.13.5"
 gem "json", ">= 2.3.0"
 
 gem "websocket-extensions", ">= 0.1.5"

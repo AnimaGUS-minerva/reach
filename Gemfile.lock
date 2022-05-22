@@ -123,12 +123,12 @@ GEM
     jbuilder (2.11.5)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
-    json (2.6.1)
+    json (2.6.2)
     jwt (2.3.0)
     listen (3.7.1)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
-    loofah (2.17.0)
+    loofah (2.18.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.7.1)
@@ -140,7 +140,7 @@ GEM
     minitest (5.15.0)
     neatjson (0.9)
     nio4r (2.5.8)
-    nokogiri (1.13.4)
+    nokogiri (1.13.6)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
     polyglot (0.3.5)
@@ -246,7 +246,7 @@ DEPENDENCIES
   jwt
   loofah (>= 2.3.1)
   mail
-  nokogiri (>= 1.11.0)
+  nokogiri (>= 1.13.5)
   openssl!
   rack (>= 2.1.4)
   rails (~> 5.2.7.1)
