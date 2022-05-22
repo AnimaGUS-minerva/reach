@@ -423,6 +423,10 @@ class Pledge
     client.logger.level = Logger::DEBUG
     client.logger.debug("STARTING with ciphers: #{client.dtls.context.ciphers}")
 
+    # need to call connect explicitely, in particular we need the peer certificate
+    # before we can form the voucher request.
+    client.io.connect
+
     CoRE::CoAP::Transmission.client_debug=true
     client
   end
