@@ -470,9 +470,13 @@ class Pledge
     vr.generate_nonce
     vr.assertion    = :proximity
     vr.signing_cert = PledgeKeys.instance.idevid_pubkey
-    vr.serialNumber = vr.serialNumber_from_cert
+    vr.serialNumber = vr.eui64_from_cert || vr.serialNumber_from_cert
     vr.createdOn    = Time.now
     vr.proximityRegistrarCert = client.peer_cert
+    if vr.serialNumber.blank? or vr.proximityRegistrarCert.blank?
+      puts "Failed to find serialNumber or proximity registrar cert"
+      exit 4
+    end
     cose = vr.cose_sign(PledgeKeys.instance.idevid_privkey)
 
     if saveto
