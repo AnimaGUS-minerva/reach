@@ -136,6 +136,10 @@ namespace :reach do
     end
 
     client.voucher_validate!(voucher)
+
+    puts "Now collect a certificate"
+    client.get_constrained_enroll(true)
+
   end
 
   # parse a DPP file and enroll an IDevID with the indicated MASA

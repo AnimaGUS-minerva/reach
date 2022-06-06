@@ -140,7 +140,8 @@ class Pledge
     puts "Voucher connects to #{voucherPinnedName}"
     puts "vs:   #{http_handler.peer_cert.subject.to_s}"
 
-    unless http_handler.try(:peer_cert).try(:to_der)
+    to_der = handler.try(:peer_cert).try(:to_der)
+    unless handler
       puts "No peer certificate returned"
       return false
     end
@@ -382,17 +383,30 @@ class Pledge
     client
   end
 
+  def coap_handler
+    @coap_handler ||= get_constrained_connection
+  end
+
   def get_https_connection
     http_handler
   end
 
+  def handler
+    @handler ||= case jrc_uri.scheme
+                 when 'https'
+                   http_handler
+
+                 when 'coaps'
+                   coap_handler
+                 end
+  end
+
   def get_constrained_voucher(saveto = nil)
+    client = handler
     case jrc_uri.scheme
     when 'https'
-      client = get_https_connection
       @rv_uri = jrc_uri
     when 'coaps'
-      client = get_constrained_connection
 
       @rv_uri = jrc_uri
       @rv_uri.path = "/.well-known/brski/rv"
@@ -417,21 +431,21 @@ class Pledge
       exit 3
     end
 
-    vr = Chariwt::VoucherRequest.new(:format => :cose_cbor)
-    vr.generate_nonce
-    vr.assertion    = :proximity
-    vr.signing_cert = PledgeKeys.instance.idevid_pubkey
-    vr.serialNumber = vr.eui64_from_cert || vr.serialNumber_from_cert
-    vr.createdOn    = Time.now
-    vr.proximityRegistrarCert = client.peer_cert
-    if vr.serialNumber.blank? or vr.proximityRegistrarCert.blank?
+    @vr = Chariwt::VoucherRequest.new(:format => :cose_cbor)
+    @vr.generate_nonce
+    @vr.assertion    = :proximity
+    @vr.signing_cert = PledgeKeys.instance.idevid_pubkey
+    @vr.serialNumber = @vr.eui64_from_cert || @vr.serialNumber_from_cert
+    @vr.createdOn    = Time.now
+    @vr.proximityRegistrarCert = client.peer_cert
+    if @vr.serialNumber.blank? or @vr.proximityRegistrarCert.blank?
       puts "Failed to find serialNumber or proximity registrar cert"
       exit 4
     end
-    cose = vr.cose_sign(PledgeKeys.instance.idevid_privkey)
+    cose = @vr.cose_sign(PledgeKeys.instance.idevid_privkey)
 
     if saveto
-      File.open("tmp/vr_#{vr.serialNumber}.vrq", "wb") do |f|
+      File.open("tmp/vr_#{@vr.serialNumber}.vrq", "wb") do |f|
         f.write cose
       end
     end
@@ -478,22 +492,8 @@ class Pledge
 
   def get_constrained_enroll(saveto = nil)
 
-    client = CoAP::Client.new(host: jrc_uri.hostname, scheme: jrc_uri.scheme)
-    client.client_cert = PledgeKeys.instance.idevid_pubkey
-    client.client_key  = PledgeKeys.instance.idevid_privkey
-    client.logger.level = Logger::DEBUG
-    client.logger.debug("STARTING")
-    client.client_cert = PledgeKeys.instance.idevid_pubkey
-
+    client = coap_handler
     CoRE::CoAP::Transmission.client_debug=true
-
-    result = client.get('/.well-known/core?rt=ace.est')
-
-    links = CoRE::Link.parse(result.payload)
-
-    print "Ready?  "
-    ans = STDIN.gets
-    puts "proceeding..."
 
     @cacerts_uri = jrc_uri.merge(links.uri)
     @cacerts_uri.path += "/crts"
@@ -503,14 +503,11 @@ class Pledge
 
     result = client.get(@cacerts_uri)
 
-    byebug
-
     @sen_uri = jrc_uri.merge(links.uri)
     @sen_uri.path += "/sen"
 
     # now build a CSR request.
-    csr = OpenSSL::X509::Request.new
-    #csr.
+    csr = build_csr(@vr.serialNumber)
 
     # host=nil, port=nil to get preset values above.
     # payload = cose
