@@ -358,55 +358,6 @@ class Pledge
     return handle_voucher_response(response, saveto)
   end
 
-  def get_voucher_with_unsigned(saveto = nil)
-    request = Net::HTTP::Post.new(jrc_uri)
-
-    # this needs to set the SSL client certificate somewhere.
-
-    vr = Chariwt::VoucherRequest.new
-    vr.generate_nonce
-    vr.assertion    = :proximity
-    vr.signing_cert = PledgeKeys.instance.idevid_pubkey
-    vr.serialNumber = vr.eui64_from_cert
-    vr.createdOn    = Time.now
-    vr.proximityRegistrarCert = http_handler.peer_cert
-    smime = vr.unsigned!
-
-    if saveto
-      File.open("tmp/vr_#{vr.serialNumber}.json", "w") do |f|
-        f.write smime
-      end
-    end
-
-    request.body = smime
-    request.content_type = 'application/json'
-    response = http_handler.request request # Net::HTTPResponse object
-
-    voucher = nil
-    case response
-    when Net::HTTPBadRequest, Net::HTTPNotFound
-      raise VoucherRequest::BadMASA
-
-    when Net::HTTPSuccess
-      ct = response['Content-Type']
-      puts "MASA provided voucher of type #{ct}"
-      voucher = process_content_type(ct, response.body)
-      if voucher
-        if saveto
-          File.open("tmp/voucher_#{vr.serialNumber}.pkcs", "w") do |f|
-            f.puts response.body
-          end
-        end
-      else
-        nil
-      end
-
-    when Net::HTTPRedirection
-      byebug
-    end
-    voucher
-  end
-
   def get_constrained_connection()
     client = CoAP::Client.new(host: jrc_uri.hostname, scheme: jrc_uri.scheme)
     client.client_cert = PledgeKeys.instance.idevid_pubkey
