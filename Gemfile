@@ -10,7 +10,7 @@ end
 gem 'rails', "~> 5.2.7.1"
 
 # restrictions due to CVEs
-gem "rack", ">= 2.1.4"
+gem "rack", ">= 2.2.3.1"
 gem "loofah", ">= 2.3.1"
 gem "activerecord", ">= 5.2.4.5"
 gem "activesupport", ">= 5.2.4.3"
