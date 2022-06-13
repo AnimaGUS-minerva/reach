@@ -3,7 +3,7 @@
 prod=$(basename $(/bin/pwd))
 (
     cd $(dirname $0)/../../../..
-rake reach:enroll_http_pledge PRODUCTID=spec/files/product/${prod} JRC=https://fountain-test.sandelman.ca:8443/
+bundle exec rake reach:enroll_http_pledge PRODUCTID=spec/files/product/${prod} JRC=https://fountain-test.sandelman.ca:8443/
 )
 
 mv ../../../../tmp/csr* .
