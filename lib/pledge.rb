@@ -411,16 +411,17 @@ class Pledge
 
       @rv_uri = jrc_uri
       @rv_uri.path = "/.well-known/brski/rv"
+      @links = @rv_uri.clone; @links.path="/.well-known/est"
 
       if ENV['LINKLIST']
         result = client.get('/.well-known/core?rt=ace.est')
-        links = CoRE::Link.parse(result.payload)
+        @links = CoRE::Link.parse(result.payload)
 
         print "Ready?  "
         ans = STDIN.gets
         puts "proceeding..."
 
-        @rv_uri = jrc_uri.merge(links.uri)
+        @rv_uri = jrc_uri.merge(@links.uri)
         @rv_uri.path += "/rv"
       end
 
@@ -496,15 +497,16 @@ class Pledge
     client = coap_handler
     CoRE::CoAP::Transmission.client_debug=true
 
-    @cacerts_uri = jrc_uri.merge(links.uri)
+    @cacerts_uri = jrc_uri.merge(@links.path)
     @cacerts_uri.path += "/crts"
 
     # set block size bigger.
     #client.max_payload = 1024
 
-    result = client.get(@cacerts_uri)
+    crtsresult = client.get(@cacerts_uri)
+    byebug
 
-    @sen_uri = jrc_uri.merge(links.uri)
+    @sen_uri = jrc_uri.merge(@links.path)
     @sen_uri.path += "/sen"
 
     # now build a CSR request.
@@ -513,31 +515,20 @@ class Pledge
     # host=nil, port=nil to get preset values above.
     # payload = cose
     # then options...
-    response = client.post(@rv_uri, nil, nil, cose,
-                           {:content_format => 'application/cose; cose-type="cose-sign"'})
+    response = client.post(@sen_uri, nil, nil, csr.to_pem,
+                           {:content_format => 'application/pkcs10'})
 
-    voucher = nil
     case
     when response.mcode[0] == 5
       raise VoucherRequest::BadMASA
 
     when response.mcode == [2,5]
       ct = response.options[:content_format]
-      puts "MASA provided voucher of type #{ct}"
-      voucher = process_constrained_content_type(ct, response.payload)
-      if voucher
-        if saveto
-          File.open("tmp/voucher_#{voucher.serialNumber}.vch", "wb") do |f|
-            f.puts response.payload
-          end
-        end
-      else
-        nil
-      end
+      byebug
+      puts "ct: #{ct}"
 
     when Net::HTTPRedirection
       byebug
     end
-    voucher
   end
 end

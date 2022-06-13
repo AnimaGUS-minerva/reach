@@ -135,7 +135,10 @@ namespace :reach do
       exit 10
     end
 
-    client.voucher_validate!(voucher)
+    unless client.voucher_validate!(voucher)
+      puts "failed to validate"
+      exit 11
+    end
 
     puts "Now collect a certificate"
     client.get_constrained_enroll(true)
