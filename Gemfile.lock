@@ -1,5 +1,5 @@
 GIT
-  remote: git@github.com:AnimaGUS-minerva/celluloid-io.git
+  remote: https://github.com/AnimaGUS-minerva/celluloid-io.git
   revision: a9bedc3dbfa3c7aef4b1cfffb9211b0787b6c61a
   branch: 0.17-dtls
   submodules: true
@@ -8,7 +8,7 @@ GIT
       nio4r (>= 1.1)
 
 GIT
-  remote: git@github.com:AnimaGUS-minerva/coap.git
+  remote: https://github.com/AnimaGUS-minerva/coap.git
   revision: 8c130f19169d62c0783f18ddfd6d1a6c7b7a2180
   ref: 8c130f19169d62c0783f18ddfd6d1a6c7b7a2180
   branch: dtls-client
