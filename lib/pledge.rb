@@ -267,23 +267,9 @@ class Pledge
     vr
   end
 
-  def hunt_for_serial_number_from_cert(cert)
-    attrs = Hash.new
-    serial_number = nil
-    cert.subject.to_a.each {|attr|
-      # might want to look at attr[2] for type info.
-      attrs[attr[0]] = attr[1]
-    }
-
-    # look through in priority order
-    return serial_number if serial_number=attrs['serialNumber']
-    return serial_number if serial_number=attrs['CN']
-    return nil
-  end
-
   def extract_serial_number(vr)
     vr.proximityRegistrarCert = http_handler.peer_cert
-    vr.serialNumber = hunt_for_serial_number_from_cert(PledgeKeys.instance.idevid_pubkey)
+    vr.serialNumber = PledgeKeys.instance.hunt_for_serial_number
   end
 
   def masa_pubkey
