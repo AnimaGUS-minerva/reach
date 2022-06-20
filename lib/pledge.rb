@@ -489,7 +489,6 @@ class Pledge
     #client.max_payload = 1024
 
     crtsresult = client.get(@cacerts_uri)
-    byebug
 
     @sen_uri = jrc_uri.merge(@links.path)
     @sen_uri.path += "/sen"
