@@ -33,7 +33,7 @@ gem 'rspec-rails', '~> 3.6'
 gem 'openssl', :path => "../minerva/ruby-openssl-upstreamed"
 #gem 'openssl', :git => 'https://github.com/CIRALabs/ruby-openssl.git', :branch => 'ies-cms-dtls'
 gem 'chariwt', :path => '../chariwt'
-#gem 'chariwt', :git => 'https://github.com/AnimaGUS-minerva/ChariWTs.git', :branch => 'v0.8.0'
+#gem 'chariwt', :git => 'https://github.com/AnimaGUS-minerva/ChariWTs.git', :branch => 'v0.10.0'
 
 gem 'jwt'
 
