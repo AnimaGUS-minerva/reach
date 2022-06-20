@@ -421,7 +421,8 @@ class Pledge
     @vr.generate_nonce
     @vr.assertion    = :proximity
     @vr.signing_cert = PledgeKeys.instance.idevid_pubkey
-    @vr.serialNumber = @vr.eui64_from_cert || @vr.serialNumber_from_cert
+    # code here used to look at: vr.eui64_from_cert, but it is proprietary extension.
+    @vr.serialNumber = @vr.serialNumber_from_cert
     @vr.createdOn    = Time.now
     @vr.proximityRegistrarCert = client.peer_cert
     if @vr.serialNumber.blank? or @vr.proximityRegistrarCert.blank?
