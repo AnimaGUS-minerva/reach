@@ -7,7 +7,7 @@ end
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', "~> 5.2.7.1"
+gem 'rails', "~> 5.2.8.1"
 
 # restrictions due to CVEs
 gem "rack", ">= 2.2.3.1"
