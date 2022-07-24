@@ -333,7 +333,9 @@ class Pledge
     end
 
     if saveto
-      File.open("tmp/vr_#{vr.serialNumber}.pkcs", "wb") do |f|
+      file = "tmp/vr_#{vr.serialNumber}.pkcs"
+      puts "Writing Voucher Request to #{file}"
+      File.open(file, "wb") do |f|
         f.write smime
       end
     end
@@ -450,8 +452,13 @@ class Pledge
       # host=nil, port=nil to get preset values above.
       # payload = cose
       # then options...
-      response = client.post(@rv_uri, nil, nil, cose,
-                             {:content_format => "application/cose; cose-type=""cose-sign1\""})
+      response = client.post(@rv_uri,    # path
+                             nil,        # host (because socket already created)
+                             nil,        # port
+                             cose,       # payload
+                             #{:content_format => 836, # "application/voucher-cose+cbor"
+                             {:content_format => "application/voucher-cose+cbor",
+                             })
 
 
       voucher = nil
