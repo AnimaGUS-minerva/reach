@@ -33,7 +33,7 @@ gem 'rspec-rails', '~> 3.6'
 gem 'openssl', :path => "../minerva/ruby-openssl-upstreamed"
 #gem 'openssl', :git => 'https://github.com/CIRALabs/ruby-openssl.git', :branch => 'ies-cms-dtls'
 gem 'chariwt', :path => '../chariwt'
-#gem 'chariwt', :git => 'https://github.com/AnimaGUS-minerva/ChariWTs.git', :branch => 'v0.10.0'
+#gem 'chariwt', :git => 'https://github.com/AnimaGUS-minerva/ChariWTs.git', :branch => 'v0.11.0'
 
 gem 'jwt'
 
@@ -44,8 +44,8 @@ gem 'celluloid-io', :git => 'https://github.com/AnimaGUS-minerva/celluloid-io.gi
 # Use Puma as the app server
 #gem 'puma', '~> 3.0'
 
-#gem 'coap', :path => '../minerva/coap'
-gem 'coap', :git => 'https://github.com/AnimaGUS-minerva/coap.git', :branch => 'dtls-client', :ref => '8c130f19169d62c0783f18ddfd6d1a6c7b7a2180'
+gem 'coap', :path => '../minerva/coap'
+#gem 'coap', :git => 'https://github.com/AnimaGUS-minerva/coap.git', :branch => 'dtls-client', :ref => '8c130f19169d62c0783f18ddfd6d1a6c7b7a2180'
 gem 'cbor'
 gem 'cbor-diag'
 
