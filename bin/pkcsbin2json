@@ -1,10 +1,8 @@
 #!/bin/sh
 
-in=$1
+der=$1
 out=$2
-der=$(echo $in | sed -e's/.pkcs$/.der/')
 
-base64 -d <$in >$der
 (openssl cms -verify -inform der -in $der -nosigs -noverify \
         | sed -e's/,/,\n/g'; echo) >$out
 

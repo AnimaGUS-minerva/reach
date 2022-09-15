@@ -24,13 +24,13 @@ RSpec.describe PledgeKeys do
     end
   end
 
-  def cmp_pkcs_file(smime, base)
+  def cmp_pkcs_file_bin(smime, base)
     ofile = File.join("tmp", base + ".pkcs")
     otfile = File.join("tmp", base+ ".txt")
 
     File.open(ofile, "wb") do |f|     f.puts smime      end
 
-    system("bin/pkcs2json #{ofile} #{otfile}")
+    system("bin/pkcsbin2json #{ofile} #{otfile}")
     cmd = "diff #{otfile} spec/files/#{base}.txt"
     puts cmd
     system(cmd)
@@ -66,9 +66,9 @@ RSpec.describe PledgeKeys do
       vr.serialNumber = vr.eui64_from_cert
       vr.createdOn    = '2017-09-01'.to_date
       vr.proximityRegistrarCert = registrar_cert
-      smime = vr.pkcs_sign(PledgeKeys.instance.idevid_privkey)
+      smime = vr.pkcs_sign_bin(PledgeKeys.instance.idevid_privkey)
 
-      expect(cmp_pkcs_file(smime, "pledge_request01")).to be true
+      expect(cmp_pkcs_file_bin(smime, "pledge_request01")).to be true
     end
 
     it "should cose sign a voucher request" do
@@ -145,7 +145,7 @@ RSpec.describe PledgeKeys do
 
     it "should find a serial number from the IDevID certificate" do
       PledgeKeys.instance.product_id = "spec/files/product/00-D0-E5-03-00-03"
-      expect(PledgeKeys.instance.hunt_for_serial_number).to eq("00-D0-E5-03-00-03")
+      expect(PledgeKeys.instance.hunt_for_serial_number).to eq("JADA_f2-00-01")
     end
 
     it "should process a CSR attributes, creating a CSR for bulb03" do
@@ -154,7 +154,7 @@ RSpec.describe PledgeKeys do
       # now create a CSR attribute with the specified name.
       client = Pledge.new
       csr = client.build_csr("rfc822name@example.com")
-      expect(csr.subject.to_s).to include("00-D0-E5-03-00-03")
+      expect(csr.subject.to_s).to include("JADA_f2-00-01")
 
       File.open("tmp/csr_bulb03.csr", "wb") do |f| f.syswrite csr.to_der end
       expect(csr.verify(csr.public_key)).to be true
