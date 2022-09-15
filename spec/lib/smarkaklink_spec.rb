@@ -35,20 +35,18 @@ RSpec.describe Smarkaklink do
 
   describe "creating self-signed certificate" do
     it "should create a new cert if needed" do
-      sp = Smarkaklink.new
       pdir = mk_pledge_dir
 
-      sp.generate_selfidevid(pdir)
+      Smarkaklink.generate_selfidevid(pdir)
       expect(File.exists?(PledgeKeys.instance.pub_file))
     end
 
     it "should reuse the private key if already created" do
-      sp = Smarkaklink.new
       pdir=tmp_pledge_dir("spec/files/product/Smarkaklink-1502449999")
 
       expect(File.exists?(PledgeKeys.instance.priv_file)).to be true
       orig = OpenSSL::Digest.digest("SHA256", IO::read(PledgeKeys.instance.priv_file))
-      sp.generate_selfidevid(pdir)
+      Smarkaklink.generate_selfidevid(pdir)
       expect(File.exists?(PledgeKeys.instance.pub_file)).to be true
 
       newd = OpenSSL::Digest.digest("SHA256", IO::read(PledgeKeys.instance.priv_file))
@@ -78,7 +76,7 @@ RSpec.describe Smarkaklink do
         @time_now = Time.at(1507671037)  # Oct 10 17:30:44 EDT 2017
 
         allow(Time).to receive(:now).and_return(@time_now)
-        stub_request(:post, "https://highway-test.example.com:9443/.well-known/est/smarkaklink").
+        stub_request(:post, "https://highway-test.example.com:9443/.well-known/brski/smarkaklink").
           with(headers:
                  {'Accept'=>'application/pkcs7',
                   'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
