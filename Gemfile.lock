@@ -1,4 +1,13 @@
 GIT
+  remote: https://github.com/AnimaGUS-minerva/ChariWTs.git
+  revision: 9525c67ffe55251d2c25ecc858f2e910cf6c11a4
+  branch: v0.11.0
+  specs:
+    chariwt (0.11.1)
+      cbor (~> 0.5.0)
+      ecdsa (~> 1.3.0)
+
+GIT
   remote: https://github.com/AnimaGUS-minerva/celluloid-io.git
   revision: a9bedc3dbfa3c7aef4b1cfffb9211b0787b6c61a
   branch: 0.17-dtls
@@ -8,25 +17,21 @@ GIT
       nio4r (>= 1.1)
 
 GIT
+  remote: https://github.com/AnimaGUS-minerva/coap.git
+  revision: a7ea1b608ee444ee6238e94fef7e1a17a106c1a1
+  branch: dtls-client
+  specs:
+    coap (0.2.0)
+      celluloid (~> 0.17.3)
+      celluloid-io (~> 0.17.3)
+      resolv-ipv6favor (~> 0)
+
+GIT
   remote: https://github.com/AnimaGUS-minerva/ruby_ecdsa.git
   revision: 64eb588befbf65fe58209d20d5a12da646077c5b
   branch: ecdsa_interface_openssl
   specs:
     ecdsa (1.3.0)
-
-PATH
-  remote: ../chariwt
-  specs:
-    chariwt (0.9.0)
-      cbor (~> 0.5.0)
-      ecdsa (~> 1.3.0)
-
-PATH
-  remote: ../minerva/coap
-  specs:
-    coap (0.1.5.pre)
-      celluloid-io (~> 0.17.3)
-      resolv-ipv6favor (~> 0)
 
 PATH
   remote: ../minerva/ruby-openssl-upstreamed

@@ -31,8 +31,8 @@ gem 'ecdsa',   :git => 'https://github.com/AnimaGUS-minerva/ruby_ecdsa.git', :br
 
 gem 'rspec-rails', '~> 3.6'
 
-gem 'openssl'
-#gem 'openssl', :path => "../minerva/ruby-openssl-upstreamed"
+#gem 'openssl'
+gem 'openssl', :path => "../minerva/ruby-openssl-upstreamed"
 
 #gem 'chariwt', :path => '../chariwt'
 gem 'chariwt', :git => 'https://github.com/AnimaGUS-minerva/ChariWTs.git', :branch => 'v0.11.0'
