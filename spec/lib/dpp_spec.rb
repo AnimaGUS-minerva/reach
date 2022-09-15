@@ -34,7 +34,7 @@ RSpec.describe DPPCode do
     it "should find MASA URL from iauthority" do
       dc = DPPCode.new(IO::read("spec/files/dpp1.txt"))
 
-      expect(dc.smarkaklink_enroll_url.to_s).to eq("https://highway-test.example.com:9443/.well-known/est/smarkaklink")
+      expect(dc.smarkaklink_enroll_url.to_s).to eq("https://highway-test.example.com:9443/.well-known/brski/smarkaklink")
     end
 
     it "should decode essid" do
@@ -52,7 +52,7 @@ RSpec.describe DPPCode do
     it "should decode llv6 to https" do
       dc = DPPCode.new
       dc.parse_one_item("L:02163EFEFF8D519B")
-      expect(dc.llv6_as_iauthority).to eq("[fe80::216:3efe:ff8d:519b]")
+      expect(dc.llv6_as_iauthority).to eq("[fe80::216:3efe:ff8d:519b%wlan0]")
     end
 
     it "should decode mac" do
