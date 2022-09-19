@@ -116,12 +116,12 @@ RSpec.describe PledgeKeys do
     end
 
     it "should process a CSR attributes, creating a CSR for bulb1" do
-      serial_number = "00-D0-E5-F2-00-01"
+      serial_number = "JADA_f2-00-01"
       PledgeKeys.instance.product_id = "spec/files/product/#{serial_number}"
 
       client = Pledge.new
 
-      csrattr_str = IO::binread("spec/files/csr_bulb1.der")
+      csrattr_str = IO::binread("spec/files/csr_bulb1.csrattr.der")
       ca = CSRAttributes.from_der(csrattr_str)
 
       rfc822Name = ca.find_rfc822Name

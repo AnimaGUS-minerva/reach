@@ -51,25 +51,34 @@ class CSRAttributes
 
   # return the sequence of subjectAltNames that have been requested
   # (usually just one item, but actually a sequence of CHOICE)
+  def find_reqExt
+    find_attr(OpenSSL::ASN1::ObjectId.new("extReq"))
+  end
+
+  # return the sequence of subjectAltNames that have been requested
+  # (usually just one item, but actually a sequence of CHOICE)
   def find_subjectAltName
-    find_attr(OpenSSL::ASN1::ObjectId.new("subjectAltName"))
+    extReq = find_reqExt
+
+    san_array = find_attr_in_list(extReq, OpenSSL::ASN1::ObjectId.new("subjectAltName"))
+    san_array.value[2]
   end
   def find_rfc822Name
     san_list = find_subjectAltName
 
-    # loop through each each, looking for rfc822Name
-    names = san_list.select { |san|
-      san.value.first && san.value[0].tag == CSRAttributes.rfc822NameChoice
+    # loop through each each, looking for rfc822Name or otherNameChoice
+    names = san_list.value.select { |san|
+      (san.tag == CSRAttributes.otherNameChoice ||
+        san.tag == CSRAttributes.rfc822NameChoice)
     }
 
     return nil if(names.length < 1)
     return nil if(names[0].value.length < 1)
-    return nil if(names[0].value[0].value.length < 1)
 
     # names contains an arrays of SubjectAltNames that are rfc822Names.
     # As there is a SET of possible values, the second array exists.
     # Within that group is a SEQ of GENERAL names.
-    name = names[0].value[0].value[0].value
+    name = names[0].value[0].value
     return name
   end
 
@@ -99,15 +108,20 @@ class CSRAttributes
   end
 
   def find_attr(x)
-    things = @attributes.select { |attr|
+    t = find_attr_in_list(@attributes, x)
+    s = t.value[1]
+    return s.value
+  end
+
+  def find_attr_in_list(attributes, x)
+    things = attributes.select { |attr|
       attr.is_a? OpenSSL::ASN1::Sequence and
         attr.value[0].is_a? OpenSSL::ASN1::ObjectId and
         attr.value[0].oid == x.oid
     }
     if things.first
       t = things.first
-      s = t.value[1]
-      return s.value
+      return t
     end
     return []
   end
