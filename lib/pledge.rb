@@ -110,6 +110,9 @@ class Pledge
     }
   end
 
+  def reset_http_handler
+    @http_handler = nil
+  end
   def http_handler
     unless @http_handler
       @http_handler = Net::HTTP.new(jrc_uri.host, jrc_uri.port)
@@ -161,8 +164,14 @@ class Pledge
   end
 
   def enroll(saveto = nil)
+    puts "csrattr_uri: #{csrattr_uri}"
     request = Net::HTTP::Get.new(csrattr_uri)
-    response = http_handler.request request # Net::HTTPResponse object
+    reset_http_handler
+    begin
+      response = http_handler.request request # Net::HTTPResponse object
+    rescue EOFError
+      reset_http_handler
+    end
     rfc822name = nil
 
     unless Net::HTTPSuccess === response
