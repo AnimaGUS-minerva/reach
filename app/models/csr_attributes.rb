@@ -15,10 +15,14 @@ class CSRAttributes
   # SubjectAltName ::= GeneralNames
   # GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
   # GeneralName ::= CHOICE {
-  #        otherName                       [0]     OtherName,
-  #        rfc822Name                      [1]     IA5String,   <-- this one
+  #        otherName                       [0]     OtherName,   <-- this one,
+  #        rfc822Name                      [1]     IA5String,
   def self.rfc822NameChoice
     1
+  end
+
+  def self.otherNameChoice
+    0
   end
 
   def self.rfc822Name(x)
@@ -27,11 +31,20 @@ class CSRAttributes
     return OpenSSL::ASN1::Sequence.new([v])
   end
 
+  def self.otherName(x)
+    # a is otherNameName CHOICE from RFC7030, and the result is a sequence of SANs
+    v = OpenSSL::ASN1::UTF8String.new(x, otherNameChoice, :EXPLICIT, :CONTEXT_SPECIFIC)
+    return OpenSSL::ASN1::Sequence.new([v])
+  end
+
   def initialize
     self.attributes = []
   end
 
   def to_der
+    # this implements the part:
+    #      CsrAttrs ::= SEQUENCE SIZE (0..MAX) OF AttrOrOID
+    #
     n = OpenSSL::ASN1::Sequence.new(@attributes)
     n.to_der
   end
@@ -69,8 +82,20 @@ class CSRAttributes
                                  OpenSSL::ASN1::Set.new([y])])
   end
 
+  def make_attr_extension(extnID, critical, extnValue)
+    critvalue = OpenSSL::ASN1::Boolean.new(critical, 0, :EXPLICIT, :CONTEXT_SPECIFIC)
+    OpenSSL::ASN1::Sequence.new([OpenSSL::ASN1::ObjectId.new(extnID),
+                                 critvalue,
+                                 extnValue])
+  end
+
   def add_attr(x, y)
     @attributes << make_attr_pair(x,y)
+  end
+
+  # extReq/extensionRequest (1.2.840.113549.1.9.14).
+  def add_attr_value(x, y)
+    @attributes << make_attr_pair("extReq", make_attr_extension(x, true, y))
   end
 
   def find_attr(x)
