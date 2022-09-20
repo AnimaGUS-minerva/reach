@@ -198,14 +198,7 @@ class Pledge
       end
 
       ca = CSRAttributes.from_der(response.body)
-      san = ca.find_subjectAltName
-
-      # correct name is in san[0].value[0].value[0].value
-      unless san[0] and san[0].value[0] and san[0].value[0].value[0]
-        puts "Can not find subjectAltName!"
-        return
-      end
-      rfc822name = san[0].value[0].value[0].value
+      rfc822name = ca.find_rfc822Name  # or othername
       puts "new device gets rfc822Name: #{rfc822name}"
     end
 
