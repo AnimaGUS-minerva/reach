@@ -136,6 +136,18 @@ RSpec.describe PledgeKeys do
       expect(csr.verify(csr.public_key)).to be true
     end
 
+    it "should process a CSR attributes from deployed VM, creating a CSR for live product" do
+      serial_number = "fee4e924a8be596a64257f1e00000000"
+
+      client = Pledge.new
+
+      csrattr_str = IO::binread("spec/files/csr_bulb1.csrattr.der")
+      ca = CSRAttributes.from_der(csrattr_str)
+
+      rfc822Name = ca.find_rfc822Name
+      expect(rfc822Name).to include("acp")
+    end
+
     def florean_bulb03
       @florean_bulb03 ||= OpenSSL::X509::Certificate.new(IO::read("spec/files/product/00-D0-E5-03-00-03/device.crt"))
     end
