@@ -59,12 +59,17 @@ class CSRAttributes
   # (usually just one item, but actually a sequence of CHOICE)
   def find_subjectAltName
     extReq = find_reqExt
+    return nil unless extReq
 
     san_array = find_attr_in_list(extReq, OpenSSL::ASN1::ObjectId.new("subjectAltName"))
     san_array.value[2]
   end
   def find_rfc822Name
-    san_list = find_subjectAltName
+    os_san_list = find_subjectAltName
+
+    # The SAN inside the extReq is an OCTETSTRING, which needs to be der decoded in
+    # order to look into it.
+    san_list = OpenSSL::ASN1.decode(os_san_list.value)
 
     # loop through each each, looking for rfc822Name or otherNameChoice
     names = san_list.value.select { |san|
