@@ -138,10 +138,14 @@ class Pledge
   end
 
   def voucher_validate!(voucher)
-    voucherPinnedName = voucher.try(:pinnedDomainCert).try(:subject).try(:to_s)
-    voucherPinnedName ||= "unknown"
-    puts "Voucher connects to #{voucherPinnedName}"
-    puts "vs:   #{handler.peer_cert.subject.to_s}"
+    return pinned_domain_cert_validate!(voucher.try(:pinnedDomainCert))
+  end
+
+  def pinned_domain_cert_validate!(pinned_domain_cert)
+    voucher_pinned_name = pinned_domain_cert.try(:subject).try(:to_s)
+    voucher_pinned_name ||= "unknown"
+    puts "pinned-domain-cert in voucher connects to #{voucher_pinned_name}"
+    puts "TLS peer cert:               #{handler.peer_cert.subject.to_s}"
 
     peer_cert = handler.try(:peer_cert)
     unless handler
@@ -149,12 +153,12 @@ class Pledge
       return false
     end
 
-    if voucher.try(:pinnedDomainCert).try(:to_der) == peer_cert.try(:to_der)
-      puts "Voucher authenticates this connection!"
+    if pinned_domain_cert.try(:to_der) == peer_cert.try(:to_der)
+      puts "pinned-domain-cert in voucher authenticates this connection!"
       return true
     else
-      pinned_dn = voucher.try(:pinnedDomainCert).issuer
-      puts "Something went wrong, and voucher #{pinned_dn} does not provide correct info (vs: #{peer_cert.issuer})"
+      pinned_dn = pinned_domain_cert.issuer
+      puts "Something went wrong, and pinned-domain-cert #{pinned_dn} does not provide correct info (vs: #{peer_cert.issuer})"
       return false
     end
   end
@@ -163,7 +167,7 @@ class Pledge
     http_handler
   end
 
-  def enroll(saveto = nil)
+  def enroll(saveto = nil, pinned_domain_cert = nil, acp_enabled = false)
     puts "csrattr_uri: #{csrattr_uri}"
     request = Net::HTTP::Get.new(csrattr_uri)
     reset_http_handler
@@ -172,6 +176,13 @@ class Pledge
     rescue EOFError
       reset_http_handler
     end
+    
+    # Validate new HTTPS session, else abort !
+    if(pinned_domain_cert == nil || pinned_domain_cert_validate!(pinned_domain_cert)==false)
+      puts "Failed to validate HTTPS peer certificate!"
+      exit 1
+    end
+
     rfc822name = nil
 
     unless Net::HTTPSuccess === response
@@ -198,8 +209,12 @@ class Pledge
       end
 
       ca = CSRAttributes.from_der(response.body)
-      rfc822name = ca.find_rfc822Name  # or othername
-      puts "new device gets rfc822Name: #{rfc822name}"
+
+      # Only add RFC822Name, if pledge is operated in ACP mode
+      if acp_enabled
+        rfc822name = ca.find_rfc822Name  # or othername
+        puts "new device gets rfc822Name: #{rfc822name}"
+      end
     end
 
     csr = build_csr(rfc822name)
@@ -213,6 +228,12 @@ class Pledge
     request.body         = csr.to_der
     request.content_type = 'application/pkcs10'
     response = http_handler.request request # Net::HTTPResponse object
+
+    # Validate new HTTPS session, else abort !
+    if(pinned_domain_cert == nil || pinned_domain_cert_validate!(pinned_domain_cert)==false)
+      puts "Failed to validate HTTPS peer certificate!"
+      exit 1
+    end
 
     unless Net::HTTPSuccess === response
       case response
@@ -240,13 +261,16 @@ class Pledge
                                  OpenSSL::ASN1::Set.new([OpenSSL::ASN1::Sequence.new([v])]))
   end
 
-  def build_csr(rfc822name)
+  def build_csr(rfc822name=nil)
     # form a Certificate Signing Request with the required rfc822name.
     csr = OpenSSL::X509::Request.new
     csr.version = 0
     csr.subject = OpenSSL::X509::Name.new([["serialNumber", PledgeKeys.instance.hunt_for_serial_number, 12]])
     csr.public_key = PledgeKeys.instance.idevid_cert.public_key
-    csr.add_attribute rfc822NameAttr(rfc822name)
+    # Only add RFC822Name if defined 
+    unless rfc822name.nil?
+      csr.add_attribute rfc822NameAttr(rfc822name)
+    end
     csr.sign PledgeKeys.instance.idevid_privkey, OpenSSL::Digest::SHA256.new
     csr
   end
