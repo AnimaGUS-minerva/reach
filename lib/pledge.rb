@@ -145,7 +145,7 @@ class Pledge
     voucher_pinned_name = pinned_domain_cert.try(:subject).try(:to_s)
     voucher_pinned_name ||= "unknown"
     puts "pinned-domain-cert in voucher connects to #{voucher_pinned_name}"
-    puts "TLS peer cert:               #{handler.peer_cert.subject.to_s}"
+    puts "TLS peer cert:                            #{handler.peer_cert.subject.to_s}"
 
     peer_cert = handler.try(:peer_cert)
     unless handler
