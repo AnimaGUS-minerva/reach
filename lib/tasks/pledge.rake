@@ -86,7 +86,12 @@ namespace :reach do
       puts "Failed to validate voucher"
       exit 1
     end
-    client.enroll(true)
+
+    # extract the pinned-domain-cert from the validated voucher
+    # so that it can be used as local trust anchor
+    pinned_domain_cert = voucher.try(:pinnedDomainCert)
+
+    client.enroll(true, pinned_domain_cert)
   end
 
   # do an EST simpleenroll with a trusted IDevID
