@@ -176,7 +176,7 @@ class Pledge
     rescue EOFError
       reset_http_handler
     end
-    
+
     # Validate new HTTPS session, else abort !
     if(pinned_domain_cert == nil || pinned_domain_cert_validate!(pinned_domain_cert)==false)
       puts "Failed to validate HTTPS peer certificate!"
@@ -212,7 +212,7 @@ class Pledge
 
       # Only add RFC822Name, if pledge is operated in ACP mode
       if acp_enabled
-        rfc822name = ca.find_rfc822Name  # or othername
+        rfc822name = ca.find_rfc822NameOrOtherName
         puts "new device gets rfc822Name: #{rfc822name}"
       end
     end
@@ -267,7 +267,7 @@ class Pledge
     csr.version = 0
     csr.subject = OpenSSL::X509::Name.new([["serialNumber", PledgeKeys.instance.hunt_for_serial_number, 12]])
     csr.public_key = PledgeKeys.instance.idevid_cert.public_key
-    # Only add RFC822Name if defined 
+    # Only add RFC822Name if defined
     unless rfc822name.nil?
       csr.add_attribute rfc822NameAttr(rfc822name)
     end
