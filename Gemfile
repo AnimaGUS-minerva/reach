@@ -7,17 +7,11 @@ end
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', "~> 5.2.8.1"
+#gem 'rails', "~> 5.2.8.1"
 
 # restrictions due to CVEs
 gem "rack", ">= 2.2.3.1"
-gem "loofah", ">= 2.3.1"
-gem "activerecord", ">= 5.2.4.5"
 gem "activesupport", ">= 5.2.4.3"
-gem "actionpack", ">= 5.2.4.3"
-gem "activestorage", ">= 5.2.4.3"
-gem "actionview", ">= 5.2.7.1"
-gem "nokogiri", ">= 1.13.5"
 gem "json", ">= 2.3.0"
 gem "tzinfo", ">= 1.2.10"
 
