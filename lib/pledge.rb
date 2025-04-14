@@ -1,6 +1,7 @@
 require 'pledge_keys'
 require 'net/http'
 require 'openssl'
+require 'mail/parsers/content_type_parser'
 
 URI::Generic.class_eval do
   def request_uri
