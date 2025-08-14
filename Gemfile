@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 #gem 'bundler', '>= 2.6.8'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', "~> 6.1.0"
+gem 'rails', "~> 8.0.0"
 gem "actionpack"
 
 # restrictions due to CVEs
@@ -11,6 +11,7 @@ gem "rack", ">= 2.2.3.1"
 gem "activesupport", ">= 6.0.0"
 gem "json", ">= 2.3.0"
 gem "tzinfo", ">= 1.2.10"
+gem "activestorage", ">= 8.0.2.1"
 
 gem "websocket-extensions", ">= 0.1.5"
 
